@@ -1,5 +1,3 @@
-import env, lidar
-import pygame
 import random
 import math
 
@@ -32,7 +30,6 @@ class drone:
         self.sensor.position = self.position
         self.dataStorage(self.sensor.sense_obstacles())
 
-
     def AD2pos(self, distance, angle, dronePosition):
         """
         A function to convert raw data to point on the map
@@ -53,12 +50,13 @@ class drone:
         :param data: The raw data from the sensor
         :return: None
         """
-        print(len(self.local_environment))
         if data is not False:
             for element in data:
                 point = self.AD2pos(element[0], element[1], element[2])
                 if point not in self.local_environment:
                     self.local_environment.append(point)
+        else:
+            print("False")
 
     def move(self):
         """
@@ -66,7 +64,7 @@ class drone:
 
         :return: None
         """
-        self.position = [random.randint(0, 1200), random.randint(0, 1200)]
+        self.position = [random.randint(0, 1200), random.randint(0, 600)]
 
     def communicate(self):
         """

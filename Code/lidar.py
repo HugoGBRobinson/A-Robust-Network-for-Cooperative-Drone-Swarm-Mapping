@@ -5,8 +5,13 @@ import numpy as np
 
 class sensor:
     def __init__(self, Range, map):
+        """
+        Constructor for the sensor class
+        :param Range: The range of the sensor
+        :param map: The raw map data
+        """
         self.Range = Range
-        self.speed = 4  # rotations per second
+        self.speed = 4  # Rotations per second
         self.position = (0, 0)
         self.map = map
         self.W, self.H = pygame.display.get_surface().get_size()
@@ -15,14 +20,18 @@ class sensor:
     def distance(self, obstaclePosition):
         """
         Euclidian distance
-        :param obstaclePosition:
-        :return:
+        :param obstaclePosition: The 2D coordinates for the obstacle
+        :return: The Euclidian distance
         """
         px = (obstaclePosition[0] - self.position[0]) ** 2
         py = (obstaclePosition[1] - self.position[1]) ** 2
         return math.sqrt(px + py)
 
     def sense_obstacles(self):
+        """
+        A function to simulate the lidar finder on the drone to navigate the environment
+        :return: Returns the point cloud data
+        """
         data = []
         output = []
         x1, y1 = self.position[0], self.position[1]

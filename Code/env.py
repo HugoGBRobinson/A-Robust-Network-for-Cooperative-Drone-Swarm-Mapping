@@ -1,9 +1,12 @@
-import math
 import pygame
 
 
 class buildEnvironment:
     def __init__(self, MapDimensions):
+        """
+        The constructor for the environment
+        :param MapDimensions: A list containing 2 elements of the map width and height
+        """
         pygame.init()
         self.pointCloud = []
         self.externalMap = pygame.image.load('Floor Plan.png')
@@ -12,19 +15,15 @@ class buildEnvironment:
         pygame.display.set_caption(self.MapWindowName)
         self.map = pygame.display.set_mode((self.mapw, self.maph))
         self.map.blit(self.externalMap, (0, 0))
-        # Colours
-        self.black = (0, 0, 0)
-        self.red = (255, 0, 0)
-        self.white = (255, 255, 255)
 
-    def show_lidarData(self, drone_positions):
+    def show_lidarData(self, local_env, position):
         """
         A function to output the lidar data and positions of drones to the infomap
-        :param drone_positions: A list of 2D drone positions
+        :param position: A 2D position of the drone
+        :param local_env: The local environment of the drone
         :return: None
         """
         self.infomap = self.map.copy()
-        for point in self.pointCloud:
+        for point in local_env:
             self.infomap.set_at((int(point[0]), int(point[1])), (255, 0, 0))
-        for position in drone_positions:
-            self.infomap.set_at(position, (0, 255, 0))
+        self.infomap.set_at(position, (0, 255, 0))
