@@ -22,7 +22,8 @@ while running:
     if sensorOn:
         drone_positions = []
         for i in range(len(drones)):
-            environment.dataStorage(drones[i].sense_environment())
+            drones[i].sense_environment()
+            environment.pointCloud = drones[i].local_environment
             drone_positions.append(drones[i].position)
             environment.show_lidarData(drone_positions)
         environment.map.blit(environment.infomap, (0, 0))

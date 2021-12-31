@@ -17,22 +17,14 @@ class buildEnvironment:
         self.red = (255, 0, 0)
         self.white = (255, 255, 255)
 
-    def AD2pos(self, distance, angle, dronePosition):
-        x = distance * math.cos(angle) + dronePosition[0]
-        y = -distance * math.sin(angle) + dronePosition[1]
-        return int(x), int(y)
-
-    def dataStorage(self, data):
-        print(len(self.pointCloud))
-        if data is not False:
-            for element in data:
-                point = self.AD2pos(element[0], element[1], element[2])
-                if point not in self.pointCloud:
-                    self.pointCloud.append(point)
-
-    def show_lidarData(self, drones):
+    def show_lidarData(self, drone_positions):
+        """
+        A function to output the lidar data and positions of drones to the infomap
+        :param drone_positions: A list of 2D drone positions
+        :return: None
+        """
         self.infomap = self.map.copy()
         for point in self.pointCloud:
             self.infomap.set_at((int(point[0]), int(point[1])), (255, 0, 0))
-        for position in drones:
+        for position in drone_positions:
             self.infomap.set_at(position, (0, 255, 0))
