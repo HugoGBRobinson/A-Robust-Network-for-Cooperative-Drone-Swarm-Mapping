@@ -26,7 +26,7 @@ class sensor:
         data = []
         output = []
         x1, y1 = self.position[0], self.position[1]
-        for angle in np.linspace(0, 2 * math.pi, 60, False):
+        for angle in np.linspace(0, 2 * math.pi, 200, False):
             x2, y2 = (x1 + self.Range * math.cos(angle), y1 - self.Range * math.sin(angle))
             for i in range(0, 100):
                 # Interpolation

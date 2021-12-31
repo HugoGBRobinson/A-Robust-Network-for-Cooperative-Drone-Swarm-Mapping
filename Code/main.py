@@ -1,30 +1,36 @@
-import env, lidar
+import env, lidar, drone
 import pygame
 
-
-environment = env.buildEnvironment((600,1200))
+environment = env.buildEnvironment((600, 1200))
 environment.origionalMap = environment.map.copy()
-laser = lidar.sensor(200, environment.origionalMap)
-environment.map.fill((0,0,0))
+# Legacy code for using the mouse as the sensor
+# laser = lidar.sensor(200, environment.origionalMap)
+drone = drone.drone(1, [100, 100], lidar.sensor(200, environment.origionalMap))
+environment.map.fill((0, 0, 0))
 environment.infomap = environment.map.copy()
 
 running = True
+count = 0
 
-while running:
-    sensorOn = False
+while count < 1000:
+    sensorOn = True
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if pygame.mouse.get_focused():
-            sensorOn = True
-        elif not pygame.mouse.get_focused():
-            sensorOn = False
+    # Legacy code for using the mouse as the sensor
+    #     if pygame.mouse.get_focused():
+    #         sensorOn = True
+    #     elif not pygame.mouse.get_focused():
+    #         sensorOn = False
 
     if sensorOn:
-        position = pygame.mouse.get_pos()
-        laser.position = position
-        sensor_data = laser.sense_obstacles()
-        environment.dataStorage(sensor_data)
+        # Legacy code for using the mouse as the sensor
+        # position = pygame.mouse.get_pos()
+        # laser.position = position
+        # l = laser.sense_obstacles()
+        environment.dataStorage(drone.sense_environment())
         environment.show_lidarData()
-    environment.map.blit(environment.infomap, (0,0))
+    environment.map.blit(environment.infomap, (0, 0))
     pygame.display.update()
+    count += 1
