@@ -30,9 +30,9 @@ class buildEnvironment:
                 if point not in self.pointCloud:
                     self.pointCloud.append(point)
 
-
-
-    def show_lidarData(self):
+    def show_lidarData(self, drones):
         self.infomap = self.map.copy()
         for point in self.pointCloud:
             self.infomap.set_at((int(point[0]), int(point[1])), (255, 0, 0))
+        for position in drones:
+            self.infomap.set_at(position, (0, 255, 0))

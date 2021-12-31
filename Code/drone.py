@@ -36,7 +36,7 @@ class drone:
         This function moves the drone, currently implements this movement as random locations in the environment
         :return: Nothing
         """
-        self.position = [random.randint(0, 600), random.randint(0, 1200)]
+        self.position = [random.randint(0, 1200), random.randint(0, 1200)]
 
     def communicate(self):
         """
