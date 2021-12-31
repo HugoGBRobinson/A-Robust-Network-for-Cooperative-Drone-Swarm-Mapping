@@ -1,4 +1,4 @@
-class ground_station:
+class GroundStation:
     def __init__(self, environment):
         """
         The constructor for the ground_station
@@ -20,4 +20,4 @@ class ground_station:
             self.drone_positions.pop()
         self.drone_positions.append(position)
 
-        self.environment.show_lidarData(self.global_environment, self.drone_positions)
+        self.environment.show_lidar_data(self.global_environment, self.drone_positions)

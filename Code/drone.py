@@ -1,8 +1,8 @@
-import random
 import math
+import random
 
 
-class drone:
+class Drone:
     """
     This class will encode a singular drone,its attributes and its functionality
     """
@@ -24,47 +24,45 @@ class drone:
     def sense_environment(self):
         """
         This function initiates one rotation from the simulated LIDAR sensor onboard the drone and returns the sensed
-        obsticals
+        obstacles
         :return: A list of sensed positions for the point cloud map
         """
         self.move()
         self.sensor.position = self.position
-        self.dataStorage(self.sensor.sense_obstacles())
+        self.data_storage(self.sensor.sense_obstacles())
 
         self.communicate_to_ground_station()
 
-    def AD2pos(self, distance, angle, dronePosition):
+    @staticmethod
+    def a_d_2pos(distance, angle, drone_position):
         """
         A function to convert raw data to point on the map
-
         :param distance: The distance of the point from the drone
         :param angle: The angel from the drone
-        :param dronePosition: The position of the drone
+        :param drone_position: The position of the drone
         :return: the integer location of the point in the environment
         """
-        x = distance * math.cos(angle) + dronePosition[0]
-        y = -distance * math.sin(angle) + dronePosition[1]
+        x = distance * math.cos(angle) + drone_position[0]
+        y = -distance * math.sin(angle) + drone_position[1]
         return int(x), int(y)
 
-    def dataStorage(self, data):
+    def data_storage(self, data):
         """
         This function takes the raw sensor data, converts it to points on the map and saves i to the local environment
-
         :param data: The raw data from the sensor
         :return: None
         """
         if data is not False:
             for element in data:
-                point = self.AD2pos(element[0], element[1], element[2])
+                point = self.a_d_2pos(element[0], element[1], element[2])
                 if point not in self.local_environment:
                     self.local_environment.append(point)
-        else:
-            print("False")
 
     def move(self):
         """
         This function moves the drone, currently implements this movement as random locations in the environment
 
+        Requires implementation of movement algorithm based of current local map
         :return: None
         """
         self.position = [random.randint(0, 1200), random.randint(0, 600)]
@@ -73,9 +71,14 @@ class drone:
         """
         This function implements the communication protocols between the drones, currently not implemented
 
+        Requires implementation of communications to other drones to update local map
         :return: None
         """
         pass
 
     def communicate_to_ground_station(self):
+        """
+        Communications to the ground station, all drones can currently do this
+        :return: None
+        """
         self.ground_station.combine_data(self.local_environment, self.position)

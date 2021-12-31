@@ -1,30 +1,31 @@
-import pygame
 import math
+
 import numpy as np
+import pygame
 
 
-class sensor:
-    def __init__(self, Range, map):
+class Sensor:
+    def __init__(self, range, map):
         """
         Constructor for the sensor class
-        :param Range: The range of the sensor
+        :param range: The range of the sensor
         :param map: The raw map data
         """
-        self.Range = Range
+        self.Range = range
         self.speed = 4  # Rotations per second
         self.position = (0, 0)
         self.map = map
         self.W, self.H = pygame.display.get_surface().get_size()
         self.sensedObstacles = []
 
-    def distance(self, obstaclePosition):
+    def distance(self, obstacle_position):
         """
         Euclidian distance
-        :param obstaclePosition: The 2D coordinates for the obstacle
+        :param obstacle_position: The 2D coordinates for the obstacle
         :return: The Euclidian distance
         """
-        px = (obstaclePosition[0] - self.position[0]) ** 2
-        py = (obstaclePosition[1] - self.position[1]) ** 2
+        px = (obstacle_position[0] - self.position[0]) ** 2
+        py = (obstacle_position[1] - self.position[1]) ** 2
         return math.sqrt(px + py)
 
     def sense_obstacles(self):
@@ -33,7 +34,6 @@ class sensor:
         :return: Returns the point cloud data
         """
         data = []
-        output = []
         x1, y1 = self.position[0], self.position[1]
         for angle in np.linspace(0, 2 * math.pi, 200, False):
             x2, y2 = (x1 + self.Range * math.cos(angle), y1 - self.Range * math.sin(angle))
