@@ -19,8 +19,8 @@ class buildEnvironment:
     def show_lidarData(self, global_env, positions):
         """
         A function to output the lidar data and positions of drones to the infomap
-        :param position: A 2D position of the drone
-        :param local_env: The local environment of the drone
+        :param global_env: The global environment from the ground_station
+        :param position: A 2D positions of all the drones
         :return: None
         """
         self.infomap = self.map.copy()
