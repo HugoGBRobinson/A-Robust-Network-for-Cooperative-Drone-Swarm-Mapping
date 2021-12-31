@@ -7,7 +7,7 @@ class drone:
     This class will encode a singular drone,its attributes and its functionality
     """
 
-    def __init__(self, number, position, sensor):
+    def __init__(self, number, position, sensor, ground_station):
         """
         The constructor for the drone class
         :param number: The id number of the drone
@@ -19,6 +19,7 @@ class drone:
         self.position = position
         self.sensor = sensor
         self.sensor_data = []
+        self.ground_station = ground_station
 
     def sense_environment(self):
         """
@@ -29,6 +30,8 @@ class drone:
         self.move()
         self.sensor.position = self.position
         self.dataStorage(self.sensor.sense_obstacles())
+
+        self.communicate_to_ground_station()
 
     def AD2pos(self, distance, angle, dronePosition):
         """
@@ -66,10 +69,13 @@ class drone:
         """
         self.position = [random.randint(0, 1200), random.randint(0, 600)]
 
-    def communicate(self):
+    def communicate_to_drone(self):
         """
         This function implements the communication protocols between the drones, currently not implemented
 
         :return: None
         """
         pass
+
+    def communicate_to_ground_station(self):
+        self.ground_station.combine_data(self.local_environment, self.position)
