@@ -21,7 +21,7 @@ running = True
 count = 0
 
 while running:
-    if count < 1000:
+    if count < 10000:
         sensorOn = True
     else:
         sensorOn = False

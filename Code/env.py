@@ -17,7 +17,7 @@ class BuildEnvironment:
         self.map.blit(self.externalMap, (0, 0))
         self.infomap = self.map.copy()
 
-    def show_lidar_data(self, global_env, positions):
+    def show_lidar_data(self, global_env, position):
         """
         A function to output the lidar data and positions of drones to the infomap
         :param global_env: The global environment from the ground_station
@@ -27,5 +27,4 @@ class BuildEnvironment:
 
         for point in global_env:
             self.infomap.set_at(point, (255, 0, 0))
-        for position in positions:
-            self.infomap.set_at(position, (0, 255, 0))
+        self.infomap.set_at(position, (0, 255, 0))

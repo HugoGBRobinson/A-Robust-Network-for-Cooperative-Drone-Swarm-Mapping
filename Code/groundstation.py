@@ -20,4 +20,4 @@ class GroundStation:
             self.drone_positions.pop()
         self.drone_positions.append(position)
 
-        self.environment.show_lidar_data(self.global_environment, self.drone_positions)
+        self.environment.show_lidar_data(data, position)
