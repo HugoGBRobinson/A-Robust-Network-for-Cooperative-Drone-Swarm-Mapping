@@ -28,11 +28,12 @@ class Sensor:
         py = (obstacle_position[1] - self.position[1]) ** 2
         return math.sqrt(px + py)
 
-    def sense_obstacles(self):
+    def sense_obstacles(self, current_position):
         """
         A function to simulate the lidar finder on the drone to navigate the environment
         :return: Returns the point cloud data
         """
+        self.position = current_position
         data = []
         x1, y1 = self.position[0], self.position[1]
         for angle in np.linspace(0, 2 * math.pi, 200, False):

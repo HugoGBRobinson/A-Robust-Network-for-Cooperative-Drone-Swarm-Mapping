@@ -16,10 +16,11 @@ class Drone:
         """
         self.number = number
         self.local_environment = []
-        self.position = position
+        self.current_position = position
         self.sensor = sensor
         self.sensor_data = []
         self.ground_station = ground_station
+        self.goal_position = [random.randint(0, 1200), random.randint(0, 600)]
 
     def sense_environment(self):
         """
@@ -28,8 +29,8 @@ class Drone:
         :return: A list of sensed positions for the point cloud map
         """
         self.move()
-        self.sensor.position = self.position
-        self.data_storage(self.sensor.sense_obstacles())
+        self.sensor.current_position = self.current_position
+        self.data_storage(self.sensor.sense_obstacles(self.current_position))
 
         self.communicate_to_ground_station()
 
@@ -60,12 +61,42 @@ class Drone:
 
     def move(self):
         """
-        This function moves the drone, currently implements this movement as random locations in the environment
-
-        Requires implementation of movement algorithm based of current local map
+        This function moves the drone, currently implements this movement as an A* algorithm, however does not avoid
+        obsticals and does not reassign goal nodes
         :return: None
         """
-        self.position = [random.randint(0, 1200), random.randint(0, 600)]
+        possible_moves = self.generate_possible_moves()
+        shortest_distance = 10000000
+        next_move = []
+        for move in possible_moves:
+            distance = self.find_distance_to_goal(move)
+            if distance < shortest_distance:
+                shortest_distance = distance
+                next_move = move
+        self.current_position = next_move
+
+    def generate_possible_moves(self):
+        """
+        This function generates the 8 possible moves around the current position and returns them as a list
+        :return: A list of 8 next positions
+        """
+        p = self.current_position
+        return [[(p[0] - 1), (p[1] + 1)], [(p[0]), (p[1] + 1)], [(p[0] + 1), (p[1] + 1)],
+                [(p[0] - 1), p[1]], [(p[0] + 1), p[1]],
+                [(p[0] - 1), (p[1] - 1)], [(p[0]), (p[1] - 1)], [(p[0] + 1), (p[1] - 1)]]
+
+    def find_distance_to_goal(self, next_position):
+        """
+        Finds the euclidian distance between a next position and the goal node
+
+        :param next_position: One of the next positions from the list
+        :return: The euclidian distance
+        """
+        x1 = next_position[0]
+        y1 = next_position[1]
+        x2 = self.goal_position[0]
+        y2 = self.goal_position[1]
+        return math.sqrt(math.pow((x2 - x1), 2) + math.pow((y2 - y1), 2))
 
     def communicate_to_drone(self):
         """
@@ -81,4 +112,4 @@ class Drone:
         Communications to the ground station, all drones can currently do this
         :return: None
         """
-        self.ground_station.combine_data(self.local_environment, self.position)
+        self.ground_station.combine_data(self.local_environment, self.current_position)
