@@ -73,7 +73,11 @@ class Drone:
             if distance < shortest_distance:
                 shortest_distance = distance
                 next_move = move
-        self.current_position = next_move
+        if self.current_position == self.goal_position:
+            self.current_position = next_move
+            self.goal_position = [random.randint(0, 1200), random.randint(0, 600)]
+        else:
+            self.current_position = next_move
 
     def generate_possible_moves(self):
         """
