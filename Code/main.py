@@ -12,10 +12,10 @@ environment.infomap = environment.map.copy()
 
 ground_station = groundstation.GroundStation(environment)
 
-num_of_drones = 1
+num_of_drones = 5
 drones = []
 for i in range(num_of_drones):
-    drones.append(drone.Drone(i, [100, 100], lidar.Sensor(200, environment.originalMap), ground_station))
+    drones.append(drone.Drone(i, (100, 100), lidar.Sensor(200, environment.originalMap), ground_station))
 running = True
 
 count = 0

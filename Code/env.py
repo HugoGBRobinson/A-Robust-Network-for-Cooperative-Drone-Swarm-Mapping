@@ -2,6 +2,9 @@ import pygame
 
 
 class BuildEnvironment:
+
+    drone_positions = []
+
     def __init__(self, map_dimensions):
         """
         The constructor for the environment
@@ -17,14 +20,17 @@ class BuildEnvironment:
         self.map.blit(self.externalMap, (0, 0))
         self.infomap = self.map.copy()
 
-    def show_lidar_data(self, global_env, position):
+    def show_lidar_data(self, global_env, position, previous_position):
         """
         A function to output the lidar data and positions of drones to the infomap
+        :param previous_position:
+        :param position:
         :param global_env: The global environment from the ground_station
-        :param positions: A 2D positions of all the drones
         :return: None
         """
 
         for point in global_env:
             self.infomap.set_at(point, (255, 0, 0))
+        if previous_position is not None:
+            self.infomap.set_at(previous_position, (0, 0, 0))
         self.infomap.set_at(position, (0, 255, 0))
