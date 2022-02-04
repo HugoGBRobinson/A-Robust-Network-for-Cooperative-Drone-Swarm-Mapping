@@ -1,7 +1,6 @@
 import math
 import random
-
-
+import numpy as np
 
 class Drone:
     """
@@ -11,7 +10,7 @@ class Drone:
     def __init__(self, id, position, sensor, ground_station, environment):
         """
         The constructor for the drone class
-        :param number: The id number of the drone
+        :param id: The id number of the drone
         :param position: Where the drone is in the environment
         :param sensor: The lidar class
         """
@@ -24,7 +23,6 @@ class Drone:
         self.ground_station = ground_station
         self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
         self.environment = environment
-
 
     def sense_environment(self):
         """
@@ -116,7 +114,6 @@ class Drone:
         possible_moves = self.calculate_points_around_a_point(p)
         return possible_moves
 
-
     @staticmethod
     def calculate_points_around_a_point(p):
         """
@@ -125,8 +122,8 @@ class Drone:
         :return:
         """
         points = [((p[0] - 1), (p[1] + 1)), ((p[0]), (p[1] + 1)), ((p[0] + 1), (p[1] + 1)),
-                          ((p[0] - 1), p[1]), ((p[0] + 1), p[1]),
-                          ((p[0] - 1), (p[1] - 1)), ((p[0]), (p[1] - 1)), ((p[0] + 1), (p[1] - 1))]
+                  ((p[0] - 1), p[1]), ((p[0] + 1), p[1]),
+                  ((p[0] - 1), (p[1] - 1)), ((p[0]), (p[1] - 1)), ((p[0] + 1), (p[1] - 1))]
         return points
 
     def find_distance_to_point(self, next_position, goal_position):
@@ -150,13 +147,19 @@ class Drone:
         Requires implementation of communications to other drones to update local map
         :return: None
         """
-        self.check_env_for_drones()
+        local_drones = self.check_env_for_drones()
+        for drone in local_drones:
+            if self.local_environment:
+                drone.add_data_to_local_env(self.local_environment)
 
     def check_env_for_drones(self):
+        local_drones = []
         for drone in self.environment.drones:
             if drone.id != self.id:
                 if self.find_distance_to_point(self.current_position, drone.current_position) < 50:
-                    print("drone " + str(self.id) + " is connecting with drone " + str(drone.id))
+                    local_drones.append(drone)
+                    # print("drone " + str(self.id) + " is connecting with drone " + str(drone.id))
+        return local_drones
 
     def communicate_to_ground_station(self):
         """
@@ -165,4 +168,12 @@ class Drone:
         """
         self.ground_station.combine_data(self.local_environment, self.current_position, self.previous_position)
 
-
+    def add_data_to_local_env(self, data):
+        if self.local_environment:
+            self_local_np = np.array(self.local_environment)
+            other_local_np = np.array(data)
+            concat = np.concatenate((self_local_np, other_local_np), axis=0)
+            remove_duplicates = np.unique(concat, axis=0)
+            self.local_environment = remove_duplicates.tolist()
+        else:
+            self.local_environment = data
