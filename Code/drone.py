@@ -2,19 +2,20 @@ import math
 import random
 
 
+
 class Drone:
     """
     This class will encode a singular drone,its attributes and its functionality
     """
 
-    def __init__(self, number, position, sensor, ground_station):
+    def __init__(self, id, position, sensor, ground_station, environment):
         """
         The constructor for the drone class
         :param number: The id number of the drone
         :param position: Where the drone is in the environment
         :param sensor: The lidar class
         """
-        self.number = number
+        self.id = id
         self.local_environment = []
         self.previous_position = None
         self.current_position = position
@@ -22,6 +23,8 @@ class Drone:
         self.sensor_data = []
         self.ground_station = ground_station
         self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
+        self.environment = environment
+
 
     def sense_environment(self):
         """
@@ -34,6 +37,7 @@ class Drone:
         self.data_storage(self.sensor.sense_obstacles(self.current_position))
 
         self.communicate_to_ground_station()
+        self.communicate_to_drone()
         self.move(self.local_environment[:50:-1])
 
     @staticmethod
@@ -94,7 +98,7 @@ class Drone:
     def move_too_close_too_object(self, point, recent_data):
         """
 
-        :param x:
+        :param point:
         :param recent_data:
         :return:
         """
@@ -146,7 +150,13 @@ class Drone:
         Requires implementation of communications to other drones to update local map
         :return: None
         """
-        pass
+        self.check_env_for_drones()
+
+    def check_env_for_drones(self):
+        for drone in self.environment.drones:
+            if drone.id != self.id:
+                if self.find_distance_to_point(self.current_position, drone.current_position) < 50:
+                    print("drone " + str(self.id) + " is connecting with drone " + str(drone.id))
 
     def communicate_to_ground_station(self):
         """

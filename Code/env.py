@@ -2,7 +2,6 @@ import pygame
 
 
 class BuildEnvironment:
-
     drone_positions = []
 
     def __init__(self, map_dimensions):
@@ -19,6 +18,7 @@ class BuildEnvironment:
         self.map = pygame.display.set_mode((self.mapw, self.maph))
         self.map.blit(self.externalMap, (0, 0))
         self.infomap = self.map.copy()
+        self.drones = []
 
     def show_lidar_data(self, global_env, position, previous_position):
         """
@@ -34,3 +34,6 @@ class BuildEnvironment:
         if previous_position is not None:
             self.infomap.set_at(previous_position, (0, 0, 0))
         self.infomap.set_at(position, (0, 255, 0))
+
+    def set_drones_in_env(self, drones):
+        self.drones = drones
