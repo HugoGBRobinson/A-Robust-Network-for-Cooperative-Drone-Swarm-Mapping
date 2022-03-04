@@ -1,6 +1,8 @@
 import math
 import random
 import numpy as np
+from queue import PriorityQueue
+
 
 class Drone:
     """
@@ -21,8 +23,12 @@ class Drone:
         self.sensor = sensor
         self.sensor_data = []
         self.ground_station = ground_station
-        self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
+        self.goal_position = (random.randint(self.current_position[0] - 100 if self.current_position[0] -100 > 0 else 0,
+                                                 self.current_position[0] + 100 if self.current_position[0] + 100 < 1200 else 1200),
+                                  random.randint(self.current_position[1] - 100 if self.current_position[1] - 100 > 0 else 0,
+                                                 self.current_position[1] + 100 if self.current_position[1] + 100 < 1200 else 1200))
         self.environment = environment
+        self.path = []
 
     def sense_environment(self):
         """
@@ -34,9 +40,10 @@ class Drone:
         self.sensor.current_position = self.current_position
         self.data_storage(self.sensor.sense_obstacles(self.current_position))
 
-        self.communicate_to_ground_station()
+        # self.communicate_to_ground_station()
         self.communicate_to_drone()
         self.move(self.local_environment[:50:-1])
+        return [self.local_environment, self.current_position, self.previous_position]
 
     @staticmethod
     def a_d_2pos(distance, angle, drone_position):
@@ -69,29 +76,120 @@ class Drone:
         obsticals and does not reassign goal nodes
         :return: None
         """
-
-        possible_moves = self.generate_possible_moves()
-        shortest_distance = 10000000
-        next_move = []
-        buffered_possible_moves = []
-        for move in possible_moves:
-            if self.move_too_close_too_object(move, recent_data):
-                buffered_possible_moves.append(move)
-
-        for move in buffered_possible_moves:
-            distance = self.find_distance_to_point(move, self.goal_position)
-            if distance < shortest_distance:
-                shortest_distance = distance
-                next_move = move
-        if self.previous_position == next_move:
-            self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
-        if self.current_position == self.goal_position:
-            self.previous_position = self.current_position
-            self.current_position = next_move
-            self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
+        if len(self.path) == 0:
+            self.generate_path(recent_data)
+        elif self.current_position == self.goal_position:
+            self.goal_position = (random.randint(self.current_position[0] - 100 if self.current_position[0] -100 > 0 else 0,
+                                                 self.current_position[0] + 100 if self.current_position[0] + 100 < 1200 else 1200),
+                                  random.randint(self.current_position[1] - 100 if self.current_position[1] - 100 > 0 else 0,
+                                                 self.current_position[1] + 100 if self.current_position[1] + 100 < 1200 else 1200))
+            self.path = []
+            self.generate_path(recent_data)
         else:
-            self.previous_position = self.current_position
-            self.current_position = next_move
+            if self.move_too_close_too_object(self.path[1], recent_data):
+                self.path = []
+                self.generate_path(recent_data)
+            else:
+                self.previous_position = self.current_position
+                self.current_position = self.path[1]
+                del self.path[0]
+
+        # for i in range(len(path)):
+        #     if i == 0:
+        #         possible_moves = self.generate_possible_moves(self.current_position)
+        #         current_position_moves = self.generate_possible_moves(self.current_position)
+        #     else:
+        #         possible_moves = self.generate_possible_moves(path[i-1])
+        #     possible_moves = [x for x in possible_moves if x not in path]
+        #     for move in possible_moves:
+        #         if self.move_too_close_too_object(move, recent_data):
+        #             buffered_possible_moves.append(move)
+        #
+        #     for move in buffered_possible_moves:
+        #         distance = self.find_distance_to_point(move, self.goal_position)
+        #         if distance < shortest_distance:
+        #             shortest_distance = distance
+        #             path[i] = move
+        # shortest_distance = 10000000
+        # if self.previous_position == path[i]:
+        #     self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
+        #     print("Redirecting")
+        # #print(path)
+        # for move in current_position_moves:
+        #     distance = self.find_distance_to_point(move, path[-1])
+        #     if distance < shortest_distance:
+        #         shortest_distance = distance
+        #         next_move = move
+        # if self.current_position == self.goal_position:
+        #     self.previous_position = self.current_position
+        #     self.current_position = next_move
+        #     print("Hit goal")
+        #     self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
+        # else:
+        #     self.previous_position = self.current_position
+        #     self.current_position = next_move
+
+    def generate_path(self, recent_data):
+        frontier = PriorityQueue()
+        frontier.put((0, self.current_position))
+        came_from = dict()
+        #cost_so_far = dict()
+        came_from[self.current_position] = None
+        #cost_so_far[self.current_position] = 0
+
+        while not frontier.empty():
+            current = frontier.get()[1]
+
+            if current == self.goal_position:
+                break
+
+            possible_moves = self.generate_possible_moves(current)
+            buffered_possible_moves = []
+            for move in possible_moves:
+                if not self.move_too_close_too_object(move, recent_data):
+                    buffered_possible_moves.append(move)
+
+            for next in buffered_possible_moves:
+                #new_cost = cost_so_far[current] + self.find_distance_to_point(current, next)
+                if next not in came_from:
+                    #cost_so_far[next] = new_cost
+                    priority = self.find_distance_to_point(self.goal_position, next)
+                    frontier.put((priority, next))
+                    came_from[next] = current
+                    #print(current)
+
+        current = self.goal_position
+        while current != self.current_position:
+            self.path.append(current)
+            current = came_from[current]
+        self.path.reverse()
+
+        # if len(self.path) == 0:
+        #     self.path.append(self.current_position)
+        # while self.path[-1] != self.goal_position:
+        #     shortest_distance = 1000000
+        #     next_move = (0, 0)
+        #     buffered_possible_moves = []
+        #     possible_moves = self.generate_possible_moves(self.path[-1])
+        #     possible_moves = [x for x in possible_moves if x not in self.path]
+        #     for move in possible_moves:
+        #         if not self.move_too_close_too_object(move, recent_data):
+        #             buffered_possible_moves.append(move)
+        #     for move in buffered_possible_moves:
+        #         if move != self.goal_position:
+        #             # Current next move to end goal distance huristic
+        #             distance = self.find_distance_to_point(move, self.goal_position) \
+        #                        # + self.find_distance_to_point(move, self.current_position)
+        #             if distance <= shortest_distance:
+        #                 shortest_distance = distance
+        #                 next_move = move
+        #         else:
+        #             self.path.append(move)
+        #             break
+        #     if move != self.goal_position:
+        #         self.path.append(next_move)
+        #         #print(next_move)
+        #         #print("Goal" + str(self.goal_position))
 
     def move_too_close_too_object(self, point, recent_data):
         """
@@ -102,16 +200,15 @@ class Drone:
         """
         for data in recent_data:
             if self.find_distance_to_point(point, data) < 10:
-                return False
-        return True
+                return True
+        return False
 
-    def generate_possible_moves(self):
+    def generate_possible_moves(self, position):
         """
         This function generates the 8 possible moves around the current position and returns them as a list
         :return: A list of 8 next positions
         """
-        p = self.current_position
-        possible_moves = self.calculate_points_around_a_point(p)
+        possible_moves = self.calculate_points_around_a_point(position)
         return possible_moves
 
     @staticmethod
@@ -153,6 +250,10 @@ class Drone:
                 drone.add_data_to_local_env(self.local_environment)
 
     def check_env_for_drones(self):
+        """
+
+        :return:
+        """
         local_drones = []
         for drone in self.environment.drones:
             if drone.id != self.id:
@@ -169,6 +270,11 @@ class Drone:
         self.ground_station.combine_data(self.local_environment, self.current_position, self.previous_position)
 
     def add_data_to_local_env(self, data):
+        """
+
+        :param data:
+        :return:
+        """
         if self.local_environment:
             self_local_np = np.array(self.local_environment)
             other_local_np = np.array(data)
