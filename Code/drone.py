@@ -79,7 +79,7 @@ class Drone:
         elif self.current_position == self.intermediate_node:
             self.path = []
             self.generate_path(recent_data)
-        elif self.current_position == self.goal_position:
+        elif self.find_distance_to_point(self.current_position, self.goal_position) < 100:
             self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
             self.path = []
             self.generate_path(recent_data)
@@ -191,10 +191,17 @@ class Drone:
         #         #print("Goal" + str(self.goal_position))
 
     def set_intermediate_node(self):
-        self.intermediate_node = (random.randint(self.current_position[0] - 100 if self.current_position[0] -100 > 0 else 0,
-                                                 self.current_position[0] + 100 if self.current_position[0] + 100 < 1200 else 1200),
-                                  random.randint(self.current_position[1] - 100 if self.current_position[1] - 100 > 0 else 0,
-                                                 self.current_position[1] + 100 if self.current_position[1] + 100 < 1200 else 1200))
+        v = (self.goal_position[0] - self.current_position[0], self.goal_position[1] - self.current_position[1])
+        v_magnitude = self.find_distance_to_point(self.current_position, self.goal_position)
+        u = (v[0] / v_magnitude, v[1] / v_magnitude)
+
+        next_node = (int(self.current_position[0] + (100 * u[0])),
+                                  int(self.current_position[1] + (100 * u[1])))
+        while next_node in self.local_environment:
+            next_node = (next_node[0] + 10, next_node[1] + 10)
+            print(next_node)
+            print("here")
+        self.intermediate_node = next_node
 
     def move_too_close_too_object(self, point, recent_data):
         """
