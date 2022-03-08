@@ -23,10 +23,8 @@ class Drone:
         self.sensor = sensor
         self.sensor_data = []
         self.ground_station = ground_station
-        self.goal_position = (random.randint(self.current_position[0] - 100 if self.current_position[0] -100 > 0 else 0,
-                                                 self.current_position[0] + 100 if self.current_position[0] + 100 < 1200 else 1200),
-                                  random.randint(self.current_position[1] - 100 if self.current_position[1] - 100 > 0 else 0,
-                                                 self.current_position[1] + 100 if self.current_position[1] + 100 < 1200 else 1200))
+        self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
+        self.intermediate_node = None
         self.environment = environment
         self.path = []
 
@@ -78,11 +76,11 @@ class Drone:
         """
         if len(self.path) == 0:
             self.generate_path(recent_data)
+        elif self.current_position == self.intermediate_node:
+            self.path = []
+            self.generate_path(recent_data)
         elif self.current_position == self.goal_position:
-            self.goal_position = (random.randint(self.current_position[0] - 100 if self.current_position[0] -100 > 0 else 0,
-                                                 self.current_position[0] + 100 if self.current_position[0] + 100 < 1200 else 1200),
-                                  random.randint(self.current_position[1] - 100 if self.current_position[1] - 100 > 0 else 0,
-                                                 self.current_position[1] + 100 if self.current_position[1] + 100 < 1200 else 1200))
+            self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
             self.path = []
             self.generate_path(recent_data)
         else:
@@ -130,6 +128,7 @@ class Drone:
         #     self.current_position = next_move
 
     def generate_path(self, recent_data):
+        self.set_intermediate_node()
         frontier = PriorityQueue()
         frontier.put((0, self.current_position))
         came_from = dict()
@@ -140,7 +139,7 @@ class Drone:
         while not frontier.empty():
             current = frontier.get()[1]
 
-            if current == self.goal_position:
+            if current == self.intermediate_node:
                 break
 
             possible_moves = self.generate_possible_moves(current)
@@ -153,12 +152,12 @@ class Drone:
                 #new_cost = cost_so_far[current] + self.find_distance_to_point(current, next)
                 if next not in came_from:
                     #cost_so_far[next] = new_cost
-                    priority = self.find_distance_to_point(self.goal_position, next)
+                    priority = self.find_distance_to_point(self.intermediate_node, next)
                     frontier.put((priority, next))
                     came_from[next] = current
                     #print(current)
 
-        current = self.goal_position
+        current = self.intermediate_node
         while current != self.current_position:
             self.path.append(current)
             current = came_from[current]
@@ -190,6 +189,12 @@ class Drone:
         #         self.path.append(next_move)
         #         #print(next_move)
         #         #print("Goal" + str(self.goal_position))
+
+    def set_intermediate_node(self):
+        self.intermediate_node = (random.randint(self.current_position[0] - 100 if self.current_position[0] -100 > 0 else 0,
+                                                 self.current_position[0] + 100 if self.current_position[0] + 100 < 1200 else 1200),
+                                  random.randint(self.current_position[1] - 100 if self.current_position[1] - 100 > 0 else 0,
+                                                 self.current_position[1] + 100 if self.current_position[1] + 100 < 1200 else 1200))
 
     def move_too_close_too_object(self, point, recent_data):
         """
