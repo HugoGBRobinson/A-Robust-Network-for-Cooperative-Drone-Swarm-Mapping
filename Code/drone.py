@@ -9,7 +9,7 @@ class Drone:
     This class will encode a singular drone,its attributes and its functionality
     """
 
-    def __init__(self, id, position, sensor, ground_station, environment):
+    def __init__(self, id, position, sensor, environment_drones, ground_station):
         """
         The constructor for the drone class
         :param id: The id number of the drone
@@ -22,11 +22,11 @@ class Drone:
         self.current_position = position
         self.sensor = sensor
         self.sensor_data = []
-        self.ground_station = ground_station
         self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
         self.intermediate_node = None
-        self.environment = environment
+        self.environment_drones = environment_drones
         self.path = []
+        self.ground_station = ground_station
 
     def sense_environment(self):
         """
@@ -41,7 +41,7 @@ class Drone:
         # self.communicate_to_ground_station()
         self.communicate_to_drone()
         self.move(self.local_environment[:50:-1])
-        return [self.local_environment, self.current_position, self.previous_position]
+        self.communicate_to_ground_station()
 
     @staticmethod
     def a_d_2pos(distance, angle, drone_position):
@@ -267,7 +267,7 @@ class Drone:
         :return:
         """
         local_drones = []
-        for drone in self.environment.drones:
+        for drone in self.environment_drones:
             if drone.id != self.id:
                 if self.find_distance_to_point(self.current_position, drone.current_position) < 50:
                     local_drones.append(drone)

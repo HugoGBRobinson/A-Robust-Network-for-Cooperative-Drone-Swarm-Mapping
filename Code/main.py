@@ -1,3 +1,5 @@
+import multiprocessing
+
 import pygame
 
 import drone
@@ -9,12 +11,6 @@ import multiprocessing as mp
 
 count = 0
 
-
-def runDrones(drones):
-    for i in range(len(drones)):
-        drones[i].sense_environment()
-
-
 if __name__ == '__main__':
     environment = env.BuildEnvironment((600, 1200))
     environment.originalMap = environment.map.copy()
@@ -23,14 +19,12 @@ if __name__ == '__main__':
 
     ground_station = groundstation.GroundStation(environment)
 
-    # pool = mp.Pool(mp.cpu_count())
-    # pool = mp.Pool(1)
-
-    num_of_drones = 3
+    num_of_drones = 1
     drones = []
     for i in range(num_of_drones):
         drones.append(
-            drone.Drone(i, (100, 100), lidar.Sensor(200, environment.originalMap), ground_station, environment))
+            drone.Drone(i, (100, 100), lidar.Sensor(200, pygame.surfarray.array2d(environment.originalMap)),
+                        environment.drones, ground_station))
     running = True
 
     environment.set_drones_in_env(drones)
@@ -43,11 +37,9 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        for i in range(len(drones)):
-            if sensorOn:
-                #data = pool.apply_async(runDrones, drones).get()
-                data = drones[i].sense_environment()
-                ground_station.combine_data(data[0], data[1], data[2])
+        if sensorOn:
+            for i in range(len(drones)):
+                drones[i].sense_environment()
                 environment.map.blit(environment.infomap, (0, 0))
                 pygame.display.update()
 

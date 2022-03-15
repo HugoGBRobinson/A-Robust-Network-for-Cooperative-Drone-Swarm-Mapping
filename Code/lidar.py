@@ -45,8 +45,11 @@ class Sensor:
                 y = int(y2 * u + y1 * (1 - u))
                 # If within the window
                 if 0 < x < self.W and 0 < y < self.H:
-                    colour = self.map.get_at((x, y))
-                    if (colour[0], colour[1], colour[2]) == (0, 0, 0):
+                    integer_colour = int(self.map[x][y])
+                    # colour = (integer_colour & 255, (integer_colour >> 8) & 255, (integer_colour >> 16) & 255)
+                    # colour = self.map.get_at((x, y))
+                    #if (colour[0], colour[1], colour[2]) == (0, 0, 0):
+                    if integer_colour == 0:
                         distance = self.distance((x, y))
                         output = [distance, angle, self.position]
                         # Store the measurement
