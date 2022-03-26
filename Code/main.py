@@ -1,5 +1,3 @@
-import multiprocessing
-
 import pygame
 
 import drone
@@ -9,9 +7,9 @@ import lidar
 
 import multiprocessing as mp
 
-count = 0
 
-if __name__ == '__main__':
+def main():
+    count = 0
     environment = env.BuildEnvironment((600, 1200))
     environment.originalMap = environment.map.copy()
     environment.map.fill((0, 0, 0))
@@ -19,7 +17,7 @@ if __name__ == '__main__':
 
     ground_station = groundstation.GroundStation(environment)
 
-    num_of_drones = 1
+    num_of_drones = 5
     drones = []
     for i in range(num_of_drones):
         drones.append(
@@ -39,8 +37,29 @@ if __name__ == '__main__':
                 running = False
         if sensorOn:
             for i in range(len(drones)):
+                run_drones(drones[i])
                 drones[i].sense_environment()
                 environment.map.blit(environment.infomap, (0, 0))
                 pygame.display.update()
 
+        if count % 100 == 0:
+            pecentage_map_explored(environment.originalMap, environment.infomap)
         count += 1
+
+
+def pecentage_map_explored(whole_map, current_map):
+    whole_map = pygame.surfarray.pixels2d(whole_map)
+    # 16711680
+    whole_map_count = list(whole_map.flatten()).count(0)
+    current_map = pygame.surfarray.pixels2d(current_map)
+    current_map = list(current_map.flatten())
+    current_map_count = len([colour for colour in current_map if colour == 16711680])
+    print((current_map_count / whole_map_count) * 100)
+
+
+def run_drones(drone):
+    drone.sense_environment()
+
+
+if __name__ == '__main__':
+    main()
