@@ -17,12 +17,12 @@ def main():
 
     ground_station = groundstation.GroundStation(environment)
 
-    num_of_drones = 5
+    num_of_drones = 3
     drones = []
     for i in range(num_of_drones):
         drones.append(
             drone.Drone(i, (100, 100), lidar.Sensor(200, pygame.surfarray.array2d(environment.originalMap)),
-                        environment.drones, ground_station))
+                        environment.drones, ground_station, environment)) #environemnt added for testing
     running = True
 
     environment.set_drones_in_env(drones)
@@ -42,8 +42,8 @@ def main():
                 environment.map.blit(environment.infomap, (0, 0))
                 pygame.display.update()
 
-        if count % 100 == 0:
-            pecentage_map_explored(environment.originalMap, environment.infomap)
+        # if count % 100 == 0:
+        #     pecentage_map_explored(environment.originalMap, environment.infomap)
         count += 1
 
 

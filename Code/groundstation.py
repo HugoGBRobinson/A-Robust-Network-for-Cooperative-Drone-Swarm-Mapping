@@ -8,7 +8,7 @@ class GroundStation:
         self.global_environment = []
         self.drone_positions = []
 
-    def combine_data(self, data, position, previous_position, checked_nodes):
+    def combine_data(self, data, position, previous_position, checked_nodes, intermediate_node):
         """
         Each drone calls this function to combine their local data to the global data, subject to change
         :param data: Local data from drone
@@ -20,4 +20,4 @@ class GroundStation:
             self.drone_positions.pop()
         self.drone_positions.append(position)
 
-        self.environment.show_lidar_data(data, position, previous_position, checked_nodes)
+        self.environment.show_lidar_data(data, position, previous_position, checked_nodes, intermediate_node)

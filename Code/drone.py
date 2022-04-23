@@ -9,7 +9,7 @@ class Drone:
     This class will encode a singular drone,its attributes and its functionality
     """
 
-    def __init__(self, id, position, sensor, environment_drones, ground_station):
+    def __init__(self, id, position, sensor, environment_drones, ground_station, environment):
         """
         The constructor for the drone class
         :param id: The id number of the drone
@@ -28,6 +28,7 @@ class Drone:
         self.path = []
         self.checked_nodes = []
         self.ground_station = ground_station
+        self.env = environment
 
     def sense_environment(self):
         """
@@ -150,6 +151,9 @@ class Drone:
                     buffered_possible_moves.append(move)
 
             for next in buffered_possible_moves:
+                if len(self.checked_nodes) > 750:
+                    self.intermediate_node = None
+                    break
                 #new_cost = cost_so_far[current] + self.find_distance_to_point(current, next)
                 new_cost = self.find_distance_to_point(current, next)
                 self.checked_nodes.append(next)
@@ -163,11 +167,16 @@ class Drone:
             if next is self.goal_position:
                 break
 
-        current = self.intermediate_node
-        while current != self.current_position:
-            self.path.append(current)
-            current = came_from[current]
-        self.path.reverse()
+        if self.intermediate_node == None:
+            self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
+            self.set_intermediate_node()
+        else:
+            current = self.intermediate_node
+            while current != self.current_position:
+                self.path.append(current)
+                current = came_from[current]
+            self.path.reverse()
+
 
         # if len(self.path) == 0:
         #     self.path.append(self.current_position)
@@ -199,40 +208,18 @@ class Drone:
     def set_intermediate_node(self):
 
         possible_nodes = []
-        x1, y1 = self.current_position[0], self.current_position[1]
-        for angle in np.linspace(0, 2 * math.pi, 50, False):
-            x2, y2 = (x1 + 200 * math.cos(angle), y1 - 200 * math.sin(angle))
-            for i in range(0, 100):
-                # Interpolation
-                u = i / 100
-                x = int(x2 * u + x1 * (1 - u))
-                y = int(y2 * u + y1 * (1 - u))
-                # If within the window
-                if 0 < x < 600 and 0 < y < 1200:
-                    # integer_colour = int(self.local_environment[x][y])
-                    # colour = (integer_colour & 255, (integer_colour >> 8) & 255, (integer_colour >> 16) & 255)
-                    # colour = self.map.get_at((x, y))
-                    # if (colour[0], colour[1], colour[2]) == (0, 0, 0):
-                    if self.move_too_close_too_object((x,y) ,self.local_environment):
-                        # output = [(x,y), math.pow(self.find_distance_to_point(self.current_position, (x,y)) + (100000 - self.find_distance_to_point(self.goal_position, (x,y))),2)]
-                        # Store the measurement
-                        # possible_nodes.append(output)
-                        break
-                    elif i == 100:
-                        output = [(x, y), math.pow(self.find_distance_to_point(self.current_position, (x, y)) + (100000 - self.find_distance_to_point(self.goal_position, (x, y))),2)]
-                        possible_nodes.append(output)
-
         next_node = None
         if len(possible_nodes) == 0:
             v = (self.goal_position[0] - self.current_position[0], self.goal_position[1] - self.current_position[1])
             v_magnitude = self.find_distance_to_point(self.current_position, self.goal_position)
             u = (v[0] / v_magnitude, v[1] / v_magnitude)
 
-            next_node = (int(self.current_position[0] + (100 * u[0])),
-                         int(self.current_position[1] + (100 * u[1])))
-            while next_node in self.local_environment or self.move_too_close_too_object(next_node,
-                                                                                        self.local_environment):
-                next_node = (next_node[0] + 10, next_node[1] + 10)
+            next_node = (int(self.current_position[0] + (50 * u[0])),
+                         int(self.current_position[1] + (50 * u[1])))
+
+            while self.check_if_wall_in_the_way(next_node):
+                next_node = self.deflect_node(next_node)
+
             self.intermediate_node = next_node
         else:
             for i in range(len(possible_nodes)):
@@ -244,9 +231,33 @@ class Drone:
             self.intermediate_node = next_node[0]
 
 
+    def check_if_wall_in_the_way(self, next_node):
+        for i in range(0, 100):
+            # Interpolation
+            u = i / 100
+            x = int(next_node[0] * u + self.current_position[0] * (1 - u))
+            y = int(next_node[1] * u + self.current_position[1] * (1 - u))
+            point = (x,y)
+            # buffered_points = self.calculate_points_around_a_point(point)
+            # buffered_points.append(point)
 
+            #for point in buffered_points:
+            self.env.infomap.set_at(point, (0, 0, 255))
+            if point in self.local_environment or self.move_too_close_too_object(point, self.local_environment):
+                print("Inside wall")
+                return True
+        return False
 
+    def deflect_node(self, next_node):
+        # theta = arctan(y2-y1 / x2-x1)
 
+        # Sometimes it gets stuck and the angel does not change
+        length = 50
+        angel = math.atan2(next_node[1] - self.current_position[1] , next_node[0] - self.current_position[0]) + math.radians(10)
+        print(math.degrees(angel))
+        x = length * math.cos(angel) + self.current_position[0]
+        y = length * math.sin(angel) + self.current_position[1]
+        return (int(x), int(y))
 
 
     def move_too_close_too_object(self, point, recent_data):
@@ -326,7 +337,7 @@ class Drone:
         Communications to the ground station, all drones can currently do this
         :return: None
         """
-        self.ground_station.combine_data(self.local_environment, self.current_position, self.previous_position, self.checked_nodes)
+        self.ground_station.combine_data(self.local_environment, self.current_position, self.previous_position, self.checked_nodes, self.intermediate_node)
 
     def add_data_to_local_env(self, data):
         """

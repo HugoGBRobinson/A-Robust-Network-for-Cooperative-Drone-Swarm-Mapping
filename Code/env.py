@@ -20,7 +20,7 @@ class BuildEnvironment:
         self.infomap = self.map.copy()
         self.drones = []
 
-    def show_lidar_data(self, global_env, position, previous_position, checked_nodes):
+    def show_lidar_data(self, global_env, position, previous_position, checked_nodes, intermediate_node):
         """
         A function to output the lidar data and positions of drones to the infomap
         :param previous_position:
@@ -34,8 +34,9 @@ class BuildEnvironment:
         if previous_position is not None:
             self.infomap.set_at(previous_position, (0, 0, 0))
         self.infomap.set_at(position, (0, 255, 0))
-        for point in checked_nodes:
-            self.infomap.set_at(point, (0, 0, 255))
+        self.infomap.set_at(intermediate_node, (0, 0, 255))
+        #for point in checked_nodes:
+            #self.infomap.set_at(point, (0, 0, 255))
 
     def set_drones_in_env(self, drones):
         self.drones = drones
