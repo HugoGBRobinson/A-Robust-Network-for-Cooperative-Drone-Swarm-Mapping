@@ -24,14 +24,15 @@ class Drone:
         self.current_position = position
         self.sensor = sensor
         self.sensor_data = []
-        self.set_goal_position()
         self.intermediate_node = None
         self.environment_drones = environment_drones
         self.path = []
         self.checked_nodes = []
         self.ground_station = ground_station
         self.env = environment
-        self.previous_intermediate_nodes = []
+        self.previous_two_intermediate_nodes = []
+        self.set_goal_position(self.env)
+        print("Setting initial goal position")
 
     def sense_environment(self):
         """
@@ -94,8 +95,9 @@ class Drone:
             found_path = self.generate_path()
             while not found_path:
                 found_path = self.generate_path()
-        elif self.find_distance_to_point(self.current_position, self.goal_position) < 100:
-            self.set_goal_position()
+        elif self.find_distance_to_point(self.current_position, self.goal_position) < 20:
+            self.set_goal_position(self.env)
+            print("Setting goal position because within 20 pixles of goal")
             self.path = []
             found_path = self.generate_path()
             while not found_path:
@@ -147,7 +149,11 @@ class Drone:
         #     self.current_position = next_move
 
     def generate_path(self):
-        self.set_intermediate_node()
+        intermediate_node_set = self.set_intermediate_node()
+        while not intermediate_node_set:
+            self.set_goal_position(self.env)
+            print("Setting new goal position because stuck in corner")
+            intermediate_node_set = self.set_intermediate_node()
         frontier = PriorityQueue()
         frontier.put((0, self.current_position))
         came_from = dict()
@@ -172,7 +178,9 @@ class Drone:
                 new_cost = self.find_distance_to_point(current, next)
                 self.checked_nodes.append(next)
                 if len(self.checked_nodes) > 1000:
-                    self.set_goal_position()
+                    self.checked_nodes = []
+                    self.set_goal_position(self.env)
+                    print("Setting goal position because over 1000 searched nodes")
                     return False
                 if next not in came_from:
                     # self.env.infomap.set_at(next, (255, 69, 0))
@@ -236,35 +244,23 @@ class Drone:
 
             while self.check_if_wall_in_the_way(next_node):
                 next_node = self.deflect_node(next_node)
-                count += 1
-                # self.env.infomap.set_at(next_node, (255, 69, 0))
-                # self.env.map.blit(self.env.infomap, (0, 0))
-                # pygame.display.update()
-
+                count += 10
+                if count == 200:
+                    return False
+                self.env.infomap.set_at(next_node, (255, 69, 0))
+                self.env.map.blit(self.env.infomap, (0, 0))
+                pygame.display.update()
+            count = 0
 
             self.intermediate_node = next_node
-            if len(self.previous_intermediate_nodes) == 8 and self.any_points_within_range(self.current_position, self.previous_intermediate_nodes, 10):
-                self.set_goal_position()
-                self.previous_intermediate_nodes = []
-                self.set_intermediate_node()
-            if len(self.previous_intermediate_nodes) == 8:
-                self.previous_intermediate_nodes.pop()
-                self.previous_intermediate_nodes.append(self.intermediate_node)
+        for i in range(len(possible_nodes)):
+            if next_node == None:
+                next_node = possible_nodes[i]
             else:
-                self.previous_intermediate_nodes.append(self.intermediate_node)
-        else:
-            for i in range(len(possible_nodes)):
-                if next_node == None:
+                if possible_nodes[i][1] > next_node[1]:
                     next_node = possible_nodes[i]
-                else:
-                    if possible_nodes[i][1] > next_node[1]:
-                        next_node = possible_nodes[i]
             self.intermediate_node = next_node[0]
-            if len(self.previous_intermediate_nodes) == 8:
-                self.previous_intermediate_nodes.pop()
-                self.previous_intermediate_nodes.append(self.intermediate_node)
-            else:
-                self.previous_intermediate_nodes.append(self.intermediate_node)
+        return True
 
     def check_if_wall_in_the_way(self, next_node):
         for i in range(10, 100, 5):
@@ -299,16 +295,19 @@ class Drone:
             return self.local_environment[-500:]
         return self.local_environment
 
-    def set_goal_position(self):
+    def set_goal_position(self, environment):
         self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
         while self.check_if_wall_in_the_way(self.goal_position):
             self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
+        environment.infomap.set_at(self.goal_position, (0, 0, 255))
+        environment.map.blit(self.env.infomap, (0, 0))
+        pygame.display.update()
 
-    def any_points_within_range(self, position, list_of_points, range):
-        for point in list_of_points:
-            if self.find_distance_to_point(position, point) <= range:
-                return True
-        return False
+    def any_points_within_range(self, position, point, range):
+        if self.find_distance_to_point(position, point) < range:
+            return True
+        else:
+            return False
 
     def move_too_close_too_object(self, point):
         """

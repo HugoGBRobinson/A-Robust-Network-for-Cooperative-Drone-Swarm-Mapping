@@ -17,7 +17,7 @@ def main():
 
     ground_station = groundstation.GroundStation(environment)
 
-    num_of_drones = 5
+    num_of_drones = 1
     drones = []
     for i in range(num_of_drones):
         drones.append(
