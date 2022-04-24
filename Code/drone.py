@@ -24,7 +24,7 @@ class Drone:
         self.current_position = position
         self.sensor = sensor
         self.sensor_data = []
-        self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
+        self.set_goal_position()
         self.intermediate_node = None
         self.environment_drones = environment_drones
         self.path = []
@@ -86,18 +86,26 @@ class Drone:
         :return: None
         """
         if len(self.path) == 0:
-            self.generate_path()
+            found_path = self.generate_path()
+            while not found_path:
+                found_path = self.generate_path()
         elif self.current_position == self.intermediate_node:
             self.path = []
-            self.generate_path()
+            found_path = self.generate_path()
+            while not found_path:
+                found_path = self.generate_path()
         elif self.find_distance_to_point(self.current_position, self.goal_position) < 100:
-            self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
+            self.set_goal_position()
             self.path = []
-            self.generate_path()
+            found_path = self.generate_path()
+            while not found_path:
+                found_path = self.generate_path()
         else:
             if self.move_too_close_too_object(self.path[1]):
                 self.path = []
-                self.generate_path()
+                found_path = self.generate_path()
+                while not found_path:
+                    found_path = self.generate_path()
             else:
                 self.previous_position = self.current_position
                 self.current_position = self.path[1]
@@ -163,6 +171,9 @@ class Drone:
                 #new_cost = cost_so_far[current] + self.find_distance_to_point(current, next)
                 new_cost = self.find_distance_to_point(current, next)
                 self.checked_nodes.append(next)
+                if len(self.checked_nodes) > 1000:
+                    self.set_goal_position()
+                    return False
                 if next not in came_from:
                     # self.env.infomap.set_at(next, (255, 69, 0))
                     # self.env.map.blit(self.env.infomap, (0, 0))
@@ -179,6 +190,7 @@ class Drone:
             self.path.append(current)
             current = came_from[current]
         self.path.reverse()
+        return True
 
 
         # if len(self.path) == 0:
@@ -225,14 +237,14 @@ class Drone:
             while self.check_if_wall_in_the_way(next_node):
                 next_node = self.deflect_node(next_node)
                 count += 1
-                self.env.infomap.set_at(next_node, (255, 69, 0))
-                self.env.map.blit(self.env.infomap, (0, 0))
-                pygame.display.update()
+                # self.env.infomap.set_at(next_node, (255, 69, 0))
+                # self.env.map.blit(self.env.infomap, (0, 0))
+                # pygame.display.update()
 
 
             self.intermediate_node = next_node
             if len(self.previous_intermediate_nodes) == 8 and self.any_points_within_range(self.current_position, self.previous_intermediate_nodes, 10):
-                self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
+                self.set_goal_position()
                 self.previous_intermediate_nodes = []
                 self.set_intermediate_node()
             if len(self.previous_intermediate_nodes) == 8:
@@ -265,11 +277,9 @@ class Drone:
             buffered_points.append(point)
             for point in buffered_points:
                 if point == self.current_position:
-                    print("removed point")
                     buffered_points.remove(point)
             for point in buffered_points:
                 if self.move_too_close_too_object(point):
-                    print(point)
                     return True
 
         return False
@@ -289,7 +299,10 @@ class Drone:
             return self.local_environment[-500:]
         return self.local_environment
 
-
+    def set_goal_position(self):
+        self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
+        while self.check_if_wall_in_the_way(self.goal_position):
+            self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
 
     def any_points_within_range(self, position, list_of_points, range):
         for point in list_of_points:
@@ -382,12 +395,11 @@ class Drone:
         :param data:
         :return:
         """
-        self.local_environment = data
-        # if self.local_environment:
-        #     self_local_np = np.array(self.local_environment)
-        #     other_local_np = np.array(data)
-        #     concat = np.concatenate((self_local_np, other_local_np), axis=0)
-        #     remove_duplicates = np.unique(concat, axis=0)
-        #     self.local_environment = remove_duplicates.tolist()
-        # else:
-        #     self.local_environment = data
+        if self.local_environment:
+            self_local_np = np.array(self.local_environment)
+            other_local_np = np.array(data)
+            concat = np.concatenate((self_local_np, other_local_np), axis=0)
+            remove_duplicates = np.unique(concat, axis=0)
+            self.local_environment = remove_duplicates.tolist()
+        else:
+            self.local_environment = data

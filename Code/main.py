@@ -17,7 +17,7 @@ def main():
 
     ground_station = groundstation.GroundStation(environment)
 
-    num_of_drones = 1
+    num_of_drones = 5
     drones = []
     for i in range(num_of_drones):
         drones.append(
@@ -27,23 +27,23 @@ def main():
 
     environment.set_drones_in_env(drones)
     while running:
-        if count < 10000:
-            sensorOn = True
-        else:
-            sensorOn = False
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        if sensorOn:
-            for i in range(len(drones)):
-                run_drones(drones[i])
-                drones[i].sense_environment()
-                environment.map.blit(environment.infomap, (0, 0))
-                pygame.display.update()
+        for i in range(len(drones)):
+            run_drones(drones[i])
+            drones[i].sense_environment()
+            environment.map.blit(environment.infomap, (0, 0))
+            pygame.display.update()
 
-        # if count % 100 == 0:
-        #     pecentage_map_explored(environment.originalMap, environment.infomap)
+        if count % 100 == 0:
+            percentage = pecentage_map_explored(environment.originalMap, environment.infomap)
+            print(percentage)
+            if percentage > 90:
+                print("-----------------------------------------------------------------------------------------------")
+                print("The " + str(num_of_drones) + " drone(s) explored 90% of the environment in " + str(count) + " iterations")
+                print("-----------------------------------------------------------------------------------------------")
+                break
         count += 1
 
 
@@ -54,7 +54,7 @@ def pecentage_map_explored(whole_map, current_map):
     current_map = pygame.surfarray.pixels2d(current_map)
     current_map = list(current_map.flatten())
     current_map_count = len([colour for colour in current_map if colour == 16711680])
-    print((current_map_count / whole_map_count) * 100)
+    return ((current_map_count / whole_map_count) * 100)
 
 
 def run_drones(drone):
