@@ -35,8 +35,8 @@ class BuildEnvironment:
             self.infomap.set_at(previous_position, (0, 0, 0))
         self.infomap.set_at(position, (0, 255, 0))
         self.infomap.set_at(intermediate_node, (0, 0, 255))
-        #for point in checked_nodes:
-            #self.infomap.set_at(point, (0, 0, 255))
+        # for point in checked_nodes:
+        #     self.infomap.set_at(point, (0, 0, 255))
 
     def set_drones_in_env(self, drones):
         self.drones = drones

@@ -3,6 +3,8 @@ import random
 import numpy as np
 from queue import PriorityQueue
 
+import pygame
+
 
 class Drone:
     """
@@ -29,6 +31,7 @@ class Drone:
         self.checked_nodes = []
         self.ground_station = ground_station
         self.env = environment
+        self.previous_intermediate_nodes = []
 
     def sense_environment(self):
         """
@@ -41,7 +44,7 @@ class Drone:
         self.data_storage(self.sensor.sense_obstacles(self.current_position))
 
         self.communicate_to_drone()
-        self.move(self.local_environment[:50:-1])
+        self.move()
         self.communicate_to_ground_station()
         self.checked_nodes = []
 
@@ -64,31 +67,37 @@ class Drone:
         :param data: The raw data from the sensor
         :return: None
         """
+        if len(self.local_environment) > 300:
+            self.local_environment = self.local_environment[-200:]
+        # if data is not False:
+        #     for element in data:
+        #         self.local_environment.append(self.a_d_2pos(element[0], element[1], element[2]))
+
         if data is not False:
             for element in data:
                 point = self.a_d_2pos(element[0], element[1], element[2])
                 if point not in self.local_environment:
                     self.local_environment.append(point)
 
-    def move(self, recent_data):
+    def move(self):
         """
         This function moves the drone, currently implements this movement as an A* algorithm, however does not avoid
         obsticals and does not reassign goal nodes
         :return: None
         """
         if len(self.path) == 0:
-            self.generate_path(recent_data)
+            self.generate_path()
         elif self.current_position == self.intermediate_node:
             self.path = []
-            self.generate_path(recent_data)
+            self.generate_path()
         elif self.find_distance_to_point(self.current_position, self.goal_position) < 100:
             self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
             self.path = []
-            self.generate_path(recent_data)
+            self.generate_path()
         else:
-            if self.move_too_close_too_object(self.path[1], recent_data):
+            if self.move_too_close_too_object(self.path[1]):
                 self.path = []
-                self.generate_path(recent_data)
+                self.generate_path()
             else:
                 self.previous_position = self.current_position
                 self.current_position = self.path[1]
@@ -129,7 +138,7 @@ class Drone:
         #     self.previous_position = self.current_position
         #     self.current_position = next_move
 
-    def generate_path(self, recent_data):
+    def generate_path(self):
         self.set_intermediate_node()
         frontier = PriorityQueue()
         frontier.put((0, self.current_position))
@@ -147,35 +156,29 @@ class Drone:
             possible_moves = self.generate_possible_moves(current)
             buffered_possible_moves = []
             for move in possible_moves:
-                if not self.move_too_close_too_object(move, recent_data):
+                if not self.move_too_close_too_object(move):
                     buffered_possible_moves.append(move)
 
             for next in buffered_possible_moves:
-                if len(self.checked_nodes) > 750:
-                    self.intermediate_node = None
-                    break
                 #new_cost = cost_so_far[current] + self.find_distance_to_point(current, next)
                 new_cost = self.find_distance_to_point(current, next)
                 self.checked_nodes.append(next)
                 if next not in came_from:
+                    # self.env.infomap.set_at(next, (255, 69, 0))
+                    # self.env.map.blit(self.env.infomap, (0, 0))
+                    # pygame.display.update()
                     cost_so_far[next] = new_cost
                     priority = self.find_distance_to_point(self.intermediate_node, next)
                     frontier.put((priority, next))
                     came_from[next] = current
                 if next is self.goal_position:
                     break
-            if next is self.goal_position:
-                break
 
-        if self.intermediate_node == None:
-            self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
-            self.set_intermediate_node()
-        else:
-            current = self.intermediate_node
-            while current != self.current_position:
-                self.path.append(current)
-                current = came_from[current]
-            self.path.reverse()
+        current = self.intermediate_node
+        while current != self.current_position:
+            self.path.append(current)
+            current = came_from[current]
+        self.path.reverse()
 
 
         # if len(self.path) == 0:
@@ -209,6 +212,8 @@ class Drone:
 
         possible_nodes = []
         next_node = None
+        count = 0
+
         if len(possible_nodes) == 0:
             v = (self.goal_position[0] - self.current_position[0], self.goal_position[1] - self.current_position[1])
             v_magnitude = self.find_distance_to_point(self.current_position, self.goal_position)
@@ -219,8 +224,22 @@ class Drone:
 
             while self.check_if_wall_in_the_way(next_node):
                 next_node = self.deflect_node(next_node)
+                count += 1
+                self.env.infomap.set_at(next_node, (255, 69, 0))
+                self.env.map.blit(self.env.infomap, (0, 0))
+                pygame.display.update()
+
 
             self.intermediate_node = next_node
+            if len(self.previous_intermediate_nodes) == 8 and self.any_points_within_range(self.current_position, self.previous_intermediate_nodes, 10):
+                self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
+                self.previous_intermediate_nodes = []
+                self.set_intermediate_node()
+            if len(self.previous_intermediate_nodes) == 8:
+                self.previous_intermediate_nodes.pop()
+                self.previous_intermediate_nodes.append(self.intermediate_node)
+            else:
+                self.previous_intermediate_nodes.append(self.intermediate_node)
         else:
             for i in range(len(possible_nodes)):
                 if next_node == None:
@@ -229,38 +248,56 @@ class Drone:
                     if possible_nodes[i][1] > next_node[1]:
                         next_node = possible_nodes[i]
             self.intermediate_node = next_node[0]
-
+            if len(self.previous_intermediate_nodes) == 8:
+                self.previous_intermediate_nodes.pop()
+                self.previous_intermediate_nodes.append(self.intermediate_node)
+            else:
+                self.previous_intermediate_nodes.append(self.intermediate_node)
 
     def check_if_wall_in_the_way(self, next_node):
-        for i in range(0, 100):
+        for i in range(10, 100, 5):
             # Interpolation
             u = i / 100
             x = int(next_node[0] * u + self.current_position[0] * (1 - u))
             y = int(next_node[1] * u + self.current_position[1] * (1 - u))
-            point = (x,y)
-            # buffered_points = self.calculate_points_around_a_point(point)
-            # buffered_points.append(point)
+            point = (x, y)
+            buffered_points = self.calculate_points_around_a_point(point)
+            buffered_points.append(point)
+            for point in buffered_points:
+                if point == self.current_position:
+                    print("removed point")
+                    buffered_points.remove(point)
+            for point in buffered_points:
+                if self.move_too_close_too_object(point):
+                    print(point)
+                    return True
 
-            #for point in buffered_points:
-            self.env.infomap.set_at(point, (0, 0, 255))
-            if point in self.local_environment or self.move_too_close_too_object(point, self.local_environment):
-                print("Inside wall")
-                return True
         return False
 
     def deflect_node(self, next_node):
         # theta = arctan(y2-y1 / x2-x1)
 
         # Sometimes it gets stuck and the angel does not change
-        length = 50
+        length = 20
         angel = math.atan2(next_node[1] - self.current_position[1] , next_node[0] - self.current_position[0]) + math.radians(10)
-        print(math.degrees(angel))
         x = length * math.cos(angel) + self.current_position[0]
         y = length * math.sin(angel) + self.current_position[1]
         return (int(x), int(y))
 
+    def check_immediate_environment(self):
+        if len(self.local_environment) > 500:
+            return self.local_environment[-500:]
+        return self.local_environment
 
-    def move_too_close_too_object(self, point, recent_data):
+
+
+    def any_points_within_range(self, position, list_of_points, range):
+        for point in list_of_points:
+            if self.find_distance_to_point(position, point) <= range:
+                return True
+        return False
+
+    def move_too_close_too_object(self, point):
         """
 
         :param point:
@@ -268,7 +305,7 @@ class Drone:
         :return:
         """
 
-        for data in recent_data:
+        for data in self.local_environment[-500:]:
             if self.find_distance_to_point(point, data) < 10:
                 return True
         return False
@@ -345,11 +382,12 @@ class Drone:
         :param data:
         :return:
         """
-        if self.local_environment:
-            self_local_np = np.array(self.local_environment)
-            other_local_np = np.array(data)
-            concat = np.concatenate((self_local_np, other_local_np), axis=0)
-            remove_duplicates = np.unique(concat, axis=0)
-            self.local_environment = remove_duplicates.tolist()
-        else:
-            self.local_environment = data
+        self.local_environment = data
+        # if self.local_environment:
+        #     self_local_np = np.array(self.local_environment)
+        #     other_local_np = np.array(data)
+        #     concat = np.concatenate((self_local_np, other_local_np), axis=0)
+        #     remove_duplicates = np.unique(concat, axis=0)
+        #     self.local_environment = remove_duplicates.tolist()
+        # else:
+        #     self.local_environment = data
