@@ -15,7 +15,7 @@ def main():
     environment.map.fill((0, 0, 0))
     environment.infomap = environment.map.copy()
 
-    num_of_drones = 1
+    num_of_drones = 3
 
     ground_station = groundstation.GroundStation(environment, num_of_drones)
 
@@ -32,7 +32,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        ground_station.send_chunks_to_drone()
+        ground_station.linear_exploration()
         for i in range(len(drones)):
             run_drones(drones[i])
             drones[i].sense_environment()

@@ -98,7 +98,8 @@ class Drone:
             while not found_path:
                 found_path = self.generate_path()
         elif self.find_distance_to_point(self.current_position, self.goal_position) < 20:
-            self.chunks_to_map.remove(self.chunks_to_map[0])
+            if len(self.chunks_to_map) != 0:
+                self.chunks_to_map.remove(self.chunks_to_map[0])
             self.set_goal_position()
             print("Setting goal position because within 20 pixles of goal")
             self.path = []
@@ -183,7 +184,8 @@ class Drone:
                 self.checked_nodes.append(next)
                 if len(self.checked_nodes) > 1000:
                     self.checked_nodes = []
-                    self.set_goal_position()
+                    self.goal_position = (random.randint(self.current_position[0] - 100, self.current_position[0] + 100),
+                                  random.randint(self.current_position[1] - 100, self.current_position[1] + 100))
                     print("Setting goal position because over 1000 searched nodes")
                     return False
                 if next not in came_from:
@@ -410,5 +412,8 @@ class Drone:
             self.local_environment = data
 
     def set_chunks(self, chunks):
-        self.chunks_to_map = [item for sublist in chunks for item in sublist]
-        self.set_goal_position()
+        if len(self.chunks_to_map) == 0:
+            self.chunks_to_map.extend(chunks)
+            self.set_goal_position()
+        else:
+            self.chunks_to_map.extend(chunks)

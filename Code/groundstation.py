@@ -10,6 +10,8 @@ class GroundStation:
         self.drone_positions = []
         self.chunks = []
         self.chunk_environment()
+        self.mapping_chunks = []
+        self.mapped_chunks = []
 
     def combine_data(self, data, position, previous_position, checked_nodes, intermediate_node):
         """
@@ -35,9 +37,13 @@ class GroundStation:
                 column.append((i, i + 100, ii, ii + 100))
             self.chunks.append(column)
 
-
-    def linier_exploration(self):
-        return False
+    def linear_exploration(self):
+        a = int(len(self.chunks) / self.number_of_drones)
+        for i in range(self.number_of_drones):
+            for ii in range(a):
+                chunk = self.chunks.pop(0)
+                self.send_chunks_to_drone(chunk, self.environment.drones[i])
+                self.mapping_chunks.append(chunk)
 
     def out_in_exploration(self):
         return False
@@ -45,10 +51,8 @@ class GroundStation:
     def random_exploration(self):
         return False
 
-    def send_chunks_to_drone(self):
-        for drone in self.environment.drones:
-            if len(drone.chunks_to_map) == 0:
-                drone.set_chunks(self.chunks)
+    def send_chunks_to_drone(self, chunks, drone):
+        drone.set_chunks(chunks)
         # Communication through a dict
         # Key is drone number
         # Value is list of chunks to explore
