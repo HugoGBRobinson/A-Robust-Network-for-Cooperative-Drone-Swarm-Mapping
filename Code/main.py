@@ -30,20 +30,22 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+        ground_station.send_chunks_to_drone()
         for i in range(len(drones)):
             run_drones(drones[i])
             drones[i].sense_environment()
             environment.map.blit(environment.infomap, (0, 0))
             pygame.display.update()
 
-        if count % 100 == 0:
-            percentage = pecentage_map_explored(environment.originalMap, environment.infomap)
-            print(percentage)
-            if percentage > 90:
-                print("-----------------------------------------------------------------------------------------------")
-                print("The " + str(num_of_drones) + " drone(s) explored 90% of the environment in " + str(count) + " iterations")
-                print("-----------------------------------------------------------------------------------------------")
-                break
+        # if count % 100 == 0:
+        #     percentage = pecentage_map_explored(environment.originalMap, environment.infomap)
+        #     print(percentage)
+        #     if percentage > 90:
+        #         print("-----------------------------------------------------------------------------------------------")
+        #         print("The " + str(num_of_drones) + " drone(s) explored 90% of the environment in " + str(count)
+        #               + " iterations")
+        #         print("-----------------------------------------------------------------------------------------------")
+        #         break
         count += 1
 
 

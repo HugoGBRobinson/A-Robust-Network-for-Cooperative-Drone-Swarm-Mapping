@@ -30,9 +30,10 @@ class Drone:
         self.checked_nodes = []
         self.ground_station = ground_station
         self.env = environment
-        self.previous_two_intermediate_nodes = []
-        self.set_goal_position(self.env)
+        self.chunks_to_map = []
+        self.set_goal_position()
         print("Setting initial goal position")
+
 
     def sense_environment(self):
         """
@@ -86,6 +87,7 @@ class Drone:
         obsticals and does not reassign goal nodes
         :return: None
         """
+
         if len(self.path) == 0:
             found_path = self.generate_path()
             while not found_path:
@@ -96,7 +98,8 @@ class Drone:
             while not found_path:
                 found_path = self.generate_path()
         elif self.find_distance_to_point(self.current_position, self.goal_position) < 20:
-            self.set_goal_position(self.env)
+            self.chunks_to_map.remove(self.chunks_to_map[0])
+            self.set_goal_position()
             print("Setting goal position because within 20 pixles of goal")
             self.path = []
             found_path = self.generate_path()
@@ -151,8 +154,9 @@ class Drone:
     def generate_path(self):
         intermediate_node_set = self.set_intermediate_node()
         while not intermediate_node_set:
-            self.set_goal_position(self.env)
             print("Setting new goal position because stuck in corner")
+            self.goal_position = (random.randint(self.current_position[0] - 100, self.current_position[0] + 100),
+                                  random.randint(self.current_position[1] - 100, self.current_position[1] + 100))
             intermediate_node_set = self.set_intermediate_node()
         frontier = PriorityQueue()
         frontier.put((0, self.current_position))
@@ -174,18 +178,18 @@ class Drone:
                     buffered_possible_moves.append(move)
 
             for next in buffered_possible_moves:
-                #new_cost = cost_so_far[current] + self.find_distance_to_point(current, next)
+                # new_cost = cost_so_far[current] + self.find_distance_to_point(current, next)
                 new_cost = self.find_distance_to_point(current, next)
                 self.checked_nodes.append(next)
                 if len(self.checked_nodes) > 1000:
                     self.checked_nodes = []
-                    self.set_goal_position(self.env)
+                    self.set_goal_position()
                     print("Setting goal position because over 1000 searched nodes")
                     return False
                 if next not in came_from:
-                    # self.env.infomap.set_at(next, (255, 69, 0))
-                    # self.env.map.blit(self.env.infomap, (0, 0))
-                    # pygame.display.update()
+                    self.env.infomap.set_at(next, (255, 69, 0))
+                    self.env.map.blit(self.env.infomap, (0, 0))
+                    pygame.display.update()
                     cost_so_far[next] = new_cost
                     priority = self.find_distance_to_point(self.intermediate_node, next)
                     frontier.put((priority, next))
@@ -199,7 +203,6 @@ class Drone:
             current = came_from[current]
         self.path.reverse()
         return True
-
 
         # if len(self.path) == 0:
         #     self.path.append(self.current_position)
@@ -245,7 +248,7 @@ class Drone:
             while self.check_if_wall_in_the_way(next_node):
                 next_node = self.deflect_node(next_node)
                 count += 10
-                if count == 200:
+                if count == 190:
                     return False
                 self.env.infomap.set_at(next_node, (255, 69, 0))
                 self.env.map.blit(self.env.infomap, (0, 0))
@@ -277,7 +280,6 @@ class Drone:
             for point in buffered_points:
                 if self.move_too_close_too_object(point):
                     return True
-
         return False
 
     def deflect_node(self, next_node):
@@ -285,7 +287,8 @@ class Drone:
 
         # Sometimes it gets stuck and the angel does not change
         length = 20
-        angel = math.atan2(next_node[1] - self.current_position[1] , next_node[0] - self.current_position[0]) + math.radians(10)
+        angel = math.atan2(next_node[1] - self.current_position[1],
+                           next_node[0] - self.current_position[0]) + math.radians(10)
         x = length * math.cos(angel) + self.current_position[0]
         y = length * math.sin(angel) + self.current_position[1]
         return (int(x), int(y))
@@ -295,13 +298,15 @@ class Drone:
             return self.local_environment[-500:]
         return self.local_environment
 
-    def set_goal_position(self, environment):
-        self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
-        while self.check_if_wall_in_the_way(self.goal_position):
-            self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
-        environment.infomap.set_at(self.goal_position, (0, 0, 255))
-        environment.map.blit(self.env.infomap, (0, 0))
-        pygame.display.update()
+    def set_goal_position(self):
+        if len(self.chunks_to_map) != 0:
+            next_chunk = self.chunks_to_map[0]
+            self.goal_position = (random.randint(next_chunk[0], next_chunk[1]), random.randint(next_chunk[2], next_chunk[3]))
+        else:
+            # return to ground Station
+            self.goal_position = (100, 100)
+
+
 
     def any_points_within_range(self, position, point, range):
         if self.find_distance_to_point(position, point) < range:
@@ -386,7 +391,8 @@ class Drone:
         Communications to the ground station, all drones can currently do this
         :return: None
         """
-        self.ground_station.combine_data(self.local_environment, self.current_position, self.previous_position, self.checked_nodes, self.intermediate_node)
+        self.ground_station.combine_data(self.local_environment, self.current_position, self.previous_position,
+                                         self.checked_nodes, self.intermediate_node)
 
     def add_data_to_local_env(self, data):
         """
@@ -402,3 +408,7 @@ class Drone:
             self.local_environment = remove_duplicates.tolist()
         else:
             self.local_environment = data
+
+    def set_chunks(self, chunks):
+        self.chunks_to_map = [item for sublist in chunks for item in sublist]
+        self.set_goal_position()
