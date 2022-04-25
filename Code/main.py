@@ -15,9 +15,11 @@ def main():
     environment.map.fill((0, 0, 0))
     environment.infomap = environment.map.copy()
 
-    ground_station = groundstation.GroundStation(environment)
-
     num_of_drones = 1
+
+    ground_station = groundstation.GroundStation(environment, num_of_drones)
+
+
     drones = []
     for i in range(num_of_drones):
         drones.append(

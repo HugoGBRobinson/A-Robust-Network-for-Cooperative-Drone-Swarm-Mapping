@@ -301,7 +301,7 @@ class Drone:
     def set_goal_position(self):
         if len(self.chunks_to_map) != 0:
             next_chunk = self.chunks_to_map[0]
-            self.goal_position = (random.randint(next_chunk[0], next_chunk[1]), random.randint(next_chunk[2], next_chunk[3]))
+            self.goal_position = (random.randint(next_chunk[0] + 50, next_chunk[1] - 50), random.randint(next_chunk[2] + 50, next_chunk[3] - 50))
         else:
             # return to ground Station
             self.goal_position = (100, 100)

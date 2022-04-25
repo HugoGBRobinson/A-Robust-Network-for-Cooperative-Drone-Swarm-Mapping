@@ -1,11 +1,12 @@
 class GroundStation:
-    def __init__(self, environment):
+    def __init__(self, environment, number_of_drones):
         """
         The constructor for the ground_station
         :param environment: The current environment
         """
         self.environment = environment
         self.global_environment = []
+        self.number_of_drones = number_of_drones
         self.drone_positions = []
         self.chunks = []
         self.chunk_environment()
@@ -33,6 +34,7 @@ class GroundStation:
             for ii in range(0, y_max, 100):
                 column.append((i, i + 100, ii, ii + 100))
             self.chunks.append(column)
+
 
     def linier_exploration(self):
         return False
