@@ -1,3 +1,5 @@
+import random
+
 class GroundStation:
     def __init__(self, environment, number_of_drones):
         """
@@ -37,7 +39,7 @@ class GroundStation:
                 column.append((i, i + 100, ii, ii + 100))
             self.chunks.append(column)
 
-    def linear_exploration(self):
+    def vertical_linear_exploration(self):
         a = int(len(self.chunks) / self.number_of_drones)
         for i in range(self.number_of_drones):
             for ii in range(a):
@@ -45,10 +47,22 @@ class GroundStation:
                 self.send_chunks_to_drone(chunk, self.environment.drones[i])
                 self.mapping_chunks.append(chunk)
 
+    def horizontal_linear_exploration(self):
+        horizontal_chunk = []
+        for i in range(self.chunks):
+            horizontal_chunk.append(self.chunks[i].pop)
+        return False
+
     def out_in_exploration(self):
         return False
 
     def random_exploration(self):
+        for i in range(self.number_of_drones):
+            for ii in range(30):
+                self.send_chunks_to_drone([self.chunks[random.randint(0, len(self.chunks) - 1)]
+                                           [random.randint(0, len(self.chunks[0]) - 1)]], self.environment.drones[i])
+
+    def mixed_exploration(self):
         return False
 
     def send_chunks_to_drone(self, chunks, drone):

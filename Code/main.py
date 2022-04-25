@@ -5,8 +5,6 @@ import env
 import groundstation
 import lidar
 
-import multiprocessing as mp
-
 
 def main():
     count = 0
@@ -15,7 +13,7 @@ def main():
     environment.map.fill((0, 0, 0))
     environment.infomap = environment.map.copy()
 
-    num_of_drones = 3
+    num_of_drones = 5
 
     ground_station = groundstation.GroundStation(environment, num_of_drones)
 
@@ -32,22 +30,22 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        ground_station.linear_exploration()
+        ground_station.random_exploration()
         for i in range(len(drones)):
             run_drones(drones[i])
             drones[i].sense_environment()
             environment.map.blit(environment.infomap, (0, 0))
             pygame.display.update()
 
-        # if count % 100 == 0:
-        #     percentage = pecentage_map_explored(environment.originalMap, environment.infomap)
-        #     print(percentage)
-        #     if percentage > 90:
-        #         print("-----------------------------------------------------------------------------------------------")
-        #         print("The " + str(num_of_drones) + " drone(s) explored 90% of the environment in " + str(count)
-        #               + " iterations")
-        #         print("-----------------------------------------------------------------------------------------------")
-        #         break
+        if count % 100 == 0:
+            percentage = pecentage_map_explored(environment.originalMap, environment.infomap)
+            print(percentage)
+            if percentage > 90:
+                print("-----------------------------------------------------------------------------------------------")
+                print("The " + str(num_of_drones) + " drone(s) explored 90% of the environment in " + str(count)
+                      + " iterations")
+                print("-----------------------------------------------------------------------------------------------")
+                break
         count += 1
 
 

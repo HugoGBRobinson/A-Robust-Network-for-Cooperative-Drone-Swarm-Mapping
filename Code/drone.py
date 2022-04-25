@@ -101,7 +101,7 @@ class Drone:
             if len(self.chunks_to_map) != 0:
                 self.chunks_to_map.remove(self.chunks_to_map[0])
             self.set_goal_position()
-            print("Setting goal position because within 20 pixles of goal")
+            # print("Setting goal position because within 20 pixles of goal")
             self.path = []
             found_path = self.generate_path()
             while not found_path:
@@ -155,7 +155,7 @@ class Drone:
     def generate_path(self):
         intermediate_node_set = self.set_intermediate_node()
         while not intermediate_node_set:
-            print("Setting new goal position because stuck in corner")
+            # print("Setting new goal position because stuck in corner")
             self.goal_position = (random.randint(self.current_position[0] - 100, self.current_position[0] + 100),
                                   random.randint(self.current_position[1] - 100, self.current_position[1] + 100))
             intermediate_node_set = self.set_intermediate_node()
@@ -186,12 +186,12 @@ class Drone:
                     self.checked_nodes = []
                     self.goal_position = (random.randint(self.current_position[0] - 100, self.current_position[0] + 100),
                                   random.randint(self.current_position[1] - 100, self.current_position[1] + 100))
-                    print("Setting goal position because over 1000 searched nodes")
+                    # print("Setting goal position because over 1000 searched nodes")
                     return False
                 if next not in came_from:
-                    self.env.infomap.set_at(next, (255, 69, 0))
-                    self.env.map.blit(self.env.infomap, (0, 0))
-                    pygame.display.update()
+                    # self.env.infomap.set_at(next, (255, 69, 0))
+                    # self.env.map.blit(self.env.infomap, (0, 0))
+                    # pygame.display.update()
                     cost_so_far[next] = new_cost
                     priority = self.find_distance_to_point(self.intermediate_node, next)
                     frontier.put((priority, next))
