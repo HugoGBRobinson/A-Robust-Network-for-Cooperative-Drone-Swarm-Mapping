@@ -31,6 +31,7 @@ class Drone:
         self.ground_station = ground_station
         self.env = environment
         self.chunks_to_map = []
+        self.mapped_chunks = []
         self.set_goal_position()
         print("Setting initial goal position")
 
@@ -373,7 +374,12 @@ class Drone:
         local_drones = self.check_env_for_drones()
         for drone in local_drones:
             if self.local_environment:
+                if self.find_distance_to_point(self.goal_position, drone.current_position) <= 30:
+                    self.mapped_chunks.append(self.chunks_to_map.pop(0))
+                    print("Setting new goal position, because other drone is close to current goal position")
                 drone.add_data_to_local_env(self.local_environment)
+
+        # If drone communicating to is within 30 pixels of current goal position mark goal position as scanned
 
     def check_env_for_drones(self):
         """

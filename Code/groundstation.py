@@ -48,10 +48,23 @@ class GroundStation:
                 self.mapping_chunks.append(chunk)
 
     def horizontal_linear_exploration(self):
-        horizontal_chunk = []
-        for i in range(self.chunks):
-            horizontal_chunk.append(self.chunks[i].pop)
-        return False
+        self.chunks = []
+        x_max = self.environment.mapw
+        y_max = self.environment.maph
+
+        for i in range(0, y_max, 100):
+            column = []
+            for ii in range(0, x_max, 100):
+                column.append((ii, ii + 100, i, i + 100))
+            self.chunks.append(column)
+
+        a = int(len(self.chunks) / self.number_of_drones)
+        for i in range(self.number_of_drones):
+            for ii in range(a):
+                chunk = self.chunks.pop(0)
+                self.send_chunks_to_drone(chunk, self.environment.drones[i])
+                self.mapping_chunks.append(chunk)
+
 
     def out_in_exploration(self):
         return False
@@ -70,3 +83,5 @@ class GroundStation:
         # Communication through a dict
         # Key is drone number
         # Value is list of chunks to explore
+
+

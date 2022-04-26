@@ -30,7 +30,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        ground_station.random_exploration()
+        ground_station.horizontal_linear_exploration()
         for i in range(len(drones)):
             run_drones(drones[i])
             drones[i].sense_environment()
