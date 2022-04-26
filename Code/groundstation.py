@@ -1,4 +1,8 @@
+import math
 import random
+
+import numpy as np
+
 
 class GroundStation:
     def __init__(self, environment, number_of_drones):
@@ -94,9 +98,11 @@ class GroundStation:
                                   [int(self.environment.maph / 100) - 1],
                                   self.chunks[0][int(self.environment.maph / 100) - 1], self.chunks[0][0]])
 
-        self.chunks.pop()
-        self.chunks.pop(0)
-        for chunk in self.chunks:
+        inner_chunks = self.chunks
+        a = 10
+        inner_chunks.pop()
+        inner_chunks.pop(0)
+        for chunk in inner_chunks:
             chunk.pop()
             chunk.pop(0)
         for drone in drones:
@@ -130,5 +136,52 @@ class GroundStation:
     def send_chunks_to_drone(self, chunks, drone):
         drone.set_chunks(chunks)
 
+    def check_for_drones(self):
+        for drone in self.environment.drones:
+            if self.find_distance_to_point((100, 100), drone.current_position) <= 100:
+                # print("Communicating with drone " + str(drone.id))
+                if len(drone.chunks_to_map) == 0:
+                    self.random_exploration([drone])
+
+                if len(self.global_environment) != 0 and len(drone.local_environment) != 0:
+                    self_local_np = np.array(self.global_environment)
+                    other_local_np = np.array(drone.local_environment)
+                    concat = np.concatenate((self_local_np, other_local_np), axis=0)
+                    remove_duplicates = np.unique(concat, axis=0)
+                    self.global_environment = remove_duplicates.tolist()
+                else:
+                    self.global_environment = drone.local_environment
+
+                self.environment.show_lidar_data(drone.local_environment, drone.current_position,
+                                                 drone.previous_position, drone.checked_nodes,
+                                                 drone.intermediate_node)
+            elif self.find_distance_to_point((100, 100), drone.current_position) == 50:
+                self.environment.show_lidar_data(drone.local_environment, None,
+                                                 drone.previous_position, drone.checked_nodes,
+                                                 drone.intermediate_node)
+            self.environment.show_lidar_data(None, drone.current_position,
+                                         drone.previous_position, drone.checked_nodes,
+                                         drone.intermediate_node)
 
 
+
+    def remove_explored_chunks(self, chunks):
+        self.mapped_chunks.append(chunks)
+        self.mapping_chunks = sorted(set(self.mapping_chunks))
+        self.mapping_chunks = [chunk for chunk in self.mapping_chunks if chunk not in chunks]
+
+
+
+    def find_distance_to_point(self, next_position, goal_position):
+        """
+        Finds the euclidian distance between a next position and the goal node
+
+        :param goal_position:
+        :param next_position: One of the next positions from the list
+        :return: The euclidian distance
+        """
+        x1 = next_position[0]
+        y1 = next_position[1]
+        x2 = goal_position[0]
+        y2 = goal_position[1]
+        return math.sqrt(math.pow((x2 - x1), 2) + math.pow((y2 - y1), 2))

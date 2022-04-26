@@ -28,12 +28,13 @@ class BuildEnvironment:
         :param global_env: The global environment from the ground_station
         :return: None
         """
-
-        for point in global_env:
-            self.infomap.set_at(point, (255, 0, 0))
+        if global_env is not None:
+            for point in global_env:
+                self.infomap.set_at(point, (255, 0, 0))
         if previous_position is not None:
             self.infomap.set_at(previous_position, (0, 0, 0))
-        self.infomap.set_at(position, (0, 255, 0))
+        if position is not None:
+            self.infomap.set_at(position, (0, 255, 0))
         # for point in checked_nodes:
         #     self.infomap.set_at(point, (0, 0, 255))
 

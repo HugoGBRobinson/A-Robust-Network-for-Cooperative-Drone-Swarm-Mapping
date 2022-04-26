@@ -39,8 +39,8 @@ def main():
                 running = False
 
         for i in range(len(drones)):
-            run_drones(drones[i])
             drones[i].sense_environment()
+            ground_station.check_for_drones()
             environment.map.blit(environment.infomap, (0, 0))
             pygame.display.update()
 
