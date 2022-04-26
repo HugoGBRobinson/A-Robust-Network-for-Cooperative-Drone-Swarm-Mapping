@@ -13,7 +13,7 @@ def main():
     environment.map.fill((0, 0, 0))
     environment.infomap = environment.map.copy()
 
-    num_of_drones = 1
+    num_of_drones = 5
 
     ground_station = groundstation.GroundStation(environment, num_of_drones)
 
@@ -32,7 +32,7 @@ def main():
     running = True
 
     environment.set_drones_in_env(drones)
-    ground_station.out_in_exploration(drones=None)
+    ground_station.mixed_exploration(drones=None)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

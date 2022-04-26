@@ -76,7 +76,7 @@ class GroundStation:
             drones = self.environment.drones
         clockwise = True
         for drone in drones:
-            if self.number_of_drones > 1:
+            if len(drones) > 1:
                 if clockwise:
                     drone.set_chunks([self.chunks[0][0], self.chunks[0][int(self.environment.maph / 100) - 1],
                                           self.chunks[int(self.environment.mapw / 100) - 1][
@@ -99,28 +99,36 @@ class GroundStation:
         for chunk in self.chunks:
             chunk.pop()
             chunk.pop(0)
-        for i in range(self.number_of_drones):
+        for drone in drones:
             for ii in range(10):
                 self.send_chunks_to_drone([self.chunks[random.randint(0, len(self.chunks) - 1)]
-                                           [random.randint(0, len(self.chunks[0]) - 1)]], drones[i])
+                                           [random.randint(0, len(self.chunks[0]) - 1)]], drone)
 
         return False
 
     def random_exploration(self, drones):
-        if drones is None:
-            drones = self.environment.drones
-        for i in range(self.number_of_drones):
+        for i in range(len(drones)):
             for ii in range(30):
                 self.send_chunks_to_drone([self.chunks[random.randint(0, len(self.chunks) - 1)]
                                            [random.randint(0, len(self.chunks[0]) - 1)]], drones[i])
 
     def mixed_exploration(self, drones):
-        return False
+        if drones is None:
+            drones = self.environment.drones
+        non_random_drones = []
+        if self.number_of_drones >= 4:
+            for i in range(len(drones)):
+                if i % 4 == 0:
+                    non_random_drones.append(drones[i])
+                else:
+                    self.random_exploration([drones[i]])
+        else:
+            self.random_exploration(drones)
+        if len(non_random_drones) > 0:
+            self.out_in_exploration(non_random_drones)
 
     def send_chunks_to_drone(self, chunks, drone):
         drone.set_chunks(chunks)
-        # Communication through a dict
-        # Key is drone number
-        # Value is list of chunks to explore
+
 
 
