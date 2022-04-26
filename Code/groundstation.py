@@ -11,9 +11,10 @@ class GroundStation:
         self.number_of_drones = number_of_drones
         self.drone_positions = []
         self.chunks = []
-        self.chunk_environment()
         self.mapping_chunks = []
         self.mapped_chunks = []
+        self.chunk_environment()
+
 
     def combine_data(self, data, position, previous_position, checked_nodes, intermediate_node):
         """
@@ -39,15 +40,19 @@ class GroundStation:
                 column.append((i, i + 100, ii, ii + 100))
             self.chunks.append(column)
 
-    def vertical_linear_exploration(self):
+    def vertical_linear_exploration(self, drones):
+        if drones is None:
+            drones = self.environment.drones
         a = int(len(self.chunks) / self.number_of_drones)
         for i in range(self.number_of_drones):
             for ii in range(a):
                 chunk = self.chunks.pop(0)
-                self.send_chunks_to_drone(chunk, self.environment.drones[i])
+                self.send_chunks_to_drone(chunk, drones[i])
                 self.mapping_chunks.append(chunk)
 
-    def horizontal_linear_exploration(self):
+    def horizontal_linear_exploration(self, drones):
+        if drones is None:
+            drones = self.environment.drones
         self.chunks = []
         x_max = self.environment.mapw
         y_max = self.environment.maph
@@ -62,20 +67,54 @@ class GroundStation:
         for i in range(self.number_of_drones):
             for ii in range(a):
                 chunk = self.chunks.pop(0)
-                self.send_chunks_to_drone(chunk, self.environment.drones[i])
+                self.send_chunks_to_drone(chunk, drones[i])
                 self.mapping_chunks.append(chunk)
 
 
-    def out_in_exploration(self):
+    def out_in_exploration(self, drones):
+        if drones is None:
+            drones = self.environment.drones
+        clockwise = True
+        for drone in drones:
+            if self.number_of_drones > 1:
+                if clockwise:
+                    drone.set_chunks([self.chunks[0][0], self.chunks[0][int(self.environment.maph / 100) - 1],
+                                          self.chunks[int(self.environment.mapw / 100) - 1][
+                                              int(self.environment.maph / 100) - 1]])
+                    clockwise = False
+                else:
+                    drone.set_chunks([self.chunks[0][0], self.chunks[int(self.environment.mapw / 100) - 1][0],
+                                          self.chunks[int(self.environment.mapw / 100) - 1][
+                                              int(self.environment.maph / 100) - 1]])
+                    clockwise = True
+            else:
+                drone = drones[0]
+                drone.set_chunks([self.chunks[0][0], self.chunks[int(self.environment.mapw / 100) - 1][0],
+                                  self.chunks[int(self.environment.mapw / 100) - 1]
+                                  [int(self.environment.maph / 100) - 1],
+                                  self.chunks[0][int(self.environment.maph / 100) - 1], self.chunks[0][0]])
+
+        self.chunks.pop()
+        self.chunks.pop(0)
+        for chunk in self.chunks:
+            chunk.pop()
+            chunk.pop(0)
+        for i in range(self.number_of_drones):
+            for ii in range(10):
+                self.send_chunks_to_drone([self.chunks[random.randint(0, len(self.chunks) - 1)]
+                                           [random.randint(0, len(self.chunks[0]) - 1)]], drones[i])
+
         return False
 
-    def random_exploration(self):
+    def random_exploration(self, drones):
+        if drones is None:
+            drones = self.environment.drones
         for i in range(self.number_of_drones):
             for ii in range(30):
                 self.send_chunks_to_drone([self.chunks[random.randint(0, len(self.chunks) - 1)]
-                                           [random.randint(0, len(self.chunks[0]) - 1)]], self.environment.drones[i])
+                                           [random.randint(0, len(self.chunks[0]) - 1)]], drones[i])
 
-    def mixed_exploration(self):
+    def mixed_exploration(self, drones):
         return False
 
     def send_chunks_to_drone(self, chunks, drone):

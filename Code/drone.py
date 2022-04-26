@@ -11,7 +11,7 @@ class Drone:
     This class will encode a singular drone,its attributes and its functionality
     """
 
-    def __init__(self, id, position, sensor, environment_drones, ground_station, environment):
+    def __init__(self, id, position, sensor, environment_drones, ground_station, environment, drone_deflect_clockwise):
         """
         The constructor for the drone class
         :param id: The id number of the drone
@@ -32,8 +32,8 @@ class Drone:
         self.env = environment
         self.chunks_to_map = []
         self.mapped_chunks = []
+        self.deflection_clockwise = drone_deflect_clockwise
         self.set_goal_position()
-        print("Setting initial goal position")
 
 
     def sense_environment(self):
@@ -288,10 +288,12 @@ class Drone:
     def deflect_node(self, next_node):
         # theta = arctan(y2-y1 / x2-x1)
 
-        # Sometimes it gets stuck and the angel does not change
+        deflection = 10
+        if self.deflection_clockwise == False:
+            deflection = -10
         length = 20
         angel = math.atan2(next_node[1] - self.current_position[1],
-                           next_node[0] - self.current_position[0]) + math.radians(10)
+                           next_node[0] - self.current_position[0]) + math.radians(deflection)
         x = length * math.cos(angel) + self.current_position[0]
         y = length * math.sin(angel) + self.current_position[1]
         return (int(x), int(y))
