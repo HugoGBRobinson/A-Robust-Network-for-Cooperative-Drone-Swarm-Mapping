@@ -9,8 +9,9 @@ import random
 
 def main():
     """
-    The main function sets up the
-    :return:
+    The main function sets up the environment and the drones.
+    It also runs the simulation, keeping count of the number of iterations.
+    :return: None
     """
     count = 0
     environment = env.BuildEnvironment((600, 1200))
@@ -72,20 +73,28 @@ def main():
 
 
 def pecentage_map_explored(whole_map, current_map):
+    """
+    This function works out the percentage of the map explored by the drones for the ground stations global map.
+    :param whole_map: The pygame surface of the underlying map
+    :param current_map: The global environment of the ground station
+    :return: A float of the percentage explored
+    """
     whole_map = pygame.surfarray.pixels2d(whole_map)
     # 16711680
     whole_map_count = list(whole_map.flatten()).count(0)
     current_map = pygame.surfarray.pixels2d(current_map)
     current_map = list(current_map.flatten())
     current_map_count = len([colour for colour in current_map if colour == 16711680])
-    return ((current_map_count / whole_map_count) * 100)
-
-
-def run_drones(drone):
-    drone.sense_environment()
+    return (current_map_count / whole_map_count) * 100
 
 
 def remove_drone(drones):
+    """
+    A function to remove drones from the environment during the simulation, based on a percentage chance per iteration,
+    this percentage chance is very low but can be changed.
+    :param drones: A list of the drones
+    :return: None
+    """
     num = random.randint(0, 100000)
     if num == 1:
         drones.remove(random.randint(0, len(drones)))
