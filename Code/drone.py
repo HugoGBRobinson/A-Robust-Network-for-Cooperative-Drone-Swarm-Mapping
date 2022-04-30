@@ -1,9 +1,8 @@
 import math
 import random
-import numpy as np
 from queue import PriorityQueue
 
-import pygame
+import numpy as np
 
 
 class Drone:
@@ -17,10 +16,14 @@ class Drone:
         :param id: The id number of the drone
         :param position: Where the drone is in the environment
         :param sensor: The lidar class
+        :param environment_drones: A list of the drones in the environment
+        :param ground_station: The ground station instance
+        :param environment: The environment instance
+        :param drone_deflect_clockwise: A boolean to determine if the drone deflects clockwise or anti-clockwise
         """
         self.id = id
         self.local_environment = []
-        self.intermediate_environment = []
+        self.immediate_environment = []
         self.previous_position = None
         self.current_position = position
         self.sensor = sensor
@@ -36,7 +39,6 @@ class Drone:
         self.deflection_clockwise = drone_deflect_clockwise
         self.set_goal_position()
 
-
     def sense_environment(self):
         """
         This function initiates one rotation from the simulated LIDAR sensor onboard the drone and returns the sensed
@@ -50,9 +52,9 @@ class Drone:
         self.communicate_to_drone()
         self.move()
         self.checked_nodes = []
-        rand = random.randint(0,10000)
+        rand = random.randint(0, 10000)
         if rand < 5:
-            self.goal_position = (100,100)
+            self.goal_position = (100, 100)
             print("Returning")
 
     @staticmethod
@@ -70,12 +72,13 @@ class Drone:
 
     def data_storage(self, data):
         """
-        This function takes the raw sensor data, converts it to points on the map and saves i to the local environment
+        This function takes the raw sensor data, converts it to points on the map and saves it to the local environment
+        and the immediate environment
         :param data: The raw data from the sensor
         :return: None
         """
-        if len(self.intermediate_environment) > 600:
-            self.intermediate_environment = self.intermediate_environment[-600:]
+        if len(self.immediate_environment) > 600:
+            self.immediate_environment = self.immediate_environment[-600:]
         # if data is not False:
         #     for element in data:
         #         self.local_environment.append(self.a_d_2pos(element[0], element[1], element[2]))
@@ -85,12 +88,12 @@ class Drone:
                 point = self.a_d_2pos(element[0], element[1], element[2])
                 if point not in self.local_environment:
                     self.local_environment.append(point)
-                self.intermediate_environment.append(point)
+                self.immediate_environment.append(point)
 
     def move(self):
         """
-        This function moves the drone, currently implements this movement as an A* algorithm, however does not avoid
-        obsticals and does not reassign goal nodes
+        This function contains the logic for how to move the drone, deciding when to generate new paths, when the
+        goal position has been reached and handling error logic from the path generation
         :return: None
         """
 
@@ -124,42 +127,11 @@ class Drone:
                 self.current_position = self.path[1]
                 del self.path[0]
 
-        # for i in range(len(path)):
-        #     if i == 0:
-        #         possible_moves = self.generate_possible_moves(self.current_position)
-        #         current_position_moves = self.generate_possible_moves(self.current_position)
-        #     else:
-        #         possible_moves = self.generate_possible_moves(path[i-1])
-        #     possible_moves = [x for x in possible_moves if x not in path]
-        #     for move in possible_moves:
-        #         if self.move_too_close_too_object(move, recent_data):
-        #             buffered_possible_moves.append(move)
-        #
-        #     for move in buffered_possible_moves:
-        #         distance = self.find_distance_to_point(move, self.goal_position)
-        #         if distance < shortest_distance:
-        #             shortest_distance = distance
-        #             path[i] = move
-        # shortest_distance = 10000000
-        # if self.previous_position == path[i]:
-        #     self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
-        #     print("Redirecting")
-        # #print(path)
-        # for move in current_position_moves:
-        #     distance = self.find_distance_to_point(move, path[-1])
-        #     if distance < shortest_distance:
-        #         shortest_distance = distance
-        #         next_move = move
-        # if self.current_position == self.goal_position:
-        #     self.previous_position = self.current_position
-        #     self.current_position = next_move
-        #     print("Hit goal")
-        #     self.goal_position = (random.randint(0, 1200), random.randint(0, 600))
-        # else:
-        #     self.previous_position = self.current_position
-        #     self.current_position = next_move
-
     def generate_path(self):
+        """
+        This function generates a path to the intermediate node using the A* algorithm
+        :return: A boolean of False if no path is set and True if one is
+        """
         intermediate_node_set = self.set_intermediate_node()
         while not intermediate_node_set:
             # print("Setting new goal position because stuck in corner")
@@ -191,8 +163,9 @@ class Drone:
                 self.checked_nodes.append(next)
                 if len(self.checked_nodes) > 1000:
                     self.checked_nodes = []
-                    self.goal_position = (random.randint(self.current_position[0] - 100, self.current_position[0] + 100),
-                                  random.randint(self.current_position[1] - 100, self.current_position[1] + 100))
+                    self.goal_position = (
+                        random.randint(self.current_position[0] - 100, self.current_position[0] + 100),
+                        random.randint(self.current_position[1] - 100, self.current_position[1] + 100))
                     # print("Setting goal position because over 1000 searched nodes")
                     return False
                 if next not in came_from:
@@ -213,34 +186,12 @@ class Drone:
         self.path.reverse()
         return True
 
-        # if len(self.path) == 0:
-        #     self.path.append(self.current_position)
-        # while self.path[-1] != self.goal_position:
-        #     shortest_distance = 1000000
-        #     next_move = (0, 0)
-        #     buffered_possible_moves = []
-        #     possible_moves = self.generate_possible_moves(self.path[-1])
-        #     possible_moves = [x for x in possible_moves if x not in self.path]
-        #     for move in possible_moves:
-        #         if not self.move_too_close_too_object(move, recent_data):
-        #             buffered_possible_moves.append(move)
-        #     for move in buffered_possible_moves:
-        #         if move != self.goal_position:
-        #             # Current next move to end goal distance huristic
-        #             distance = self.find_distance_to_point(move, self.goal_position) \
-        #                        # + self.find_distance_to_point(move, self.current_position)
-        #             if distance <= shortest_distance:
-        #                 shortest_distance = distance
-        #                 next_move = move
-        #         else:
-        #             self.path.append(move)
-        #             break
-        #     if move != self.goal_position:
-        #         self.path.append(next_move)
-        #         #print(next_move)
-        #         #print("Goal" + str(self.goal_position))
-
     def set_intermediate_node(self):
+        """
+        This function set the intermediate node between the current position and the goal position. it does this through
+        interpolation and radial deflection.
+        :return: A boolean of False if no intermediate node is set and True if one is
+        """
 
         possible_nodes = []
         next_node = None
@@ -274,6 +225,11 @@ class Drone:
         return True
 
     def check_if_wall_in_the_way(self, next_node):
+        """
+        A function that takes in a node and checks if there is a wall between the drones current position and the node
+        :param next_node: The next node in (x , y) format
+        :return: Returns True if there is a wall in the way and False if there is not
+        """
         for i in range(10, 100, 5):
             # Interpolation
             u = i / 100
@@ -291,6 +247,11 @@ class Drone:
         return False
 
     def deflect_node(self, next_node):
+        """
+        A function to delfect the intermediate node by + or - 10 degrees if there is a wall in the way
+        :param next_node: The intermediate node in (x , y) format
+        :return: The new intermediate node in (x , y) format
+        """
         # theta = arctan(y2-y1 / x2-x1)
 
         deflection = 10
@@ -304,21 +265,37 @@ class Drone:
         return (int(x), int(y))
 
     def check_immediate_environment(self):
-        if len(self.intermediate_environment) > 500:
-            return self.intermediate_environment[-500:]
-        return self.intermediate_environment
+        """
+        A function to return the drones immediate environment. If the immediate environment is above 500 points it is
+        reduced. This is to improve processing times.
+        :return: The immediate environment
+        """
+        if len(self.immediate_environment) > 500:
+            return self.immediate_environment[-500:]
+        return self.immediate_environment
 
     def set_goal_position(self):
+        """
+        This function sets the drones' goal position based of the chunks still left to map.
+        If the chunks to mpa list is empty the goal position becomes the ground station
+        :return: None
+        """
         if len(self.chunks_to_map) != 0:
             next_chunk = self.chunks_to_map[0]
-            self.goal_position = (random.randint(next_chunk[0] + 50, next_chunk[1] - 50), random.randint(next_chunk[2] + 50, next_chunk[3] - 50))
+            self.goal_position = (random.randint(next_chunk[0] + 50, next_chunk[1] - 50),
+                                  random.randint(next_chunk[2] + 50, next_chunk[3] - 50))
         else:
             # return to ground Station
             self.goal_position = (100, 100)
 
-
-
     def any_points_within_range(self, position, point, range):
+        """
+        Checks if a defined point is within range
+        :param position: The start position
+        :param point: The end position
+        :param range: The max distance between
+        :return: True if point is within range and False if not
+        """
         if self.find_distance_to_point(position, point) < range:
             return True
         else:
@@ -326,18 +303,22 @@ class Drone:
 
     def move_too_close_too_object(self, point):
         """
-
-        :param point:
-        :param recent_data:
-        :return:
+        Returns true if the defined point is either inside a wall or within 10 pixels of it.
+        :param point: The point queried
+        :return: Boolean
         """
 
-        for data in self.intermediate_environment[-500:]:
+        for data in self.immediate_environment[-500:]:
             if self.find_distance_to_point(point, data) < 10:
                 return True
         return False
 
     def generate_possible_moves(self, position):
+        """
+        This returns a list of the possible moves around a point
+        :param position: The current position
+        :return: The list of possible moves
+        """
         """
         This function generates the 8 possible moves around the current position and returns them as a list
         :return: A list of 8 next positions
@@ -348,9 +329,9 @@ class Drone:
     @staticmethod
     def calculate_points_around_a_point(p):
         """
-
-        :param p:
-        :return:
+        A function that calculates the 8 moves around a given point
+        :param p: The given point
+        :return: The list of points around it
         """
         points = [((p[0] - 1), (p[1] + 1)), ((p[0]), (p[1] + 1)), ((p[0] + 1), (p[1] + 1)),
                   ((p[0] - 1), p[1]), ((p[0] + 1), p[1]),
@@ -381,7 +362,8 @@ class Drone:
         local_drones = self.check_env_for_drones()
         for drone in local_drones:
             if self.local_environment:
-                if self.find_distance_to_point(self.goal_position, drone.current_position) <= 50 and len(self.chunks_to_map) is not 0:
+                if self.find_distance_to_point(self.goal_position, drone.current_position) <= 50 and len(
+                        self.chunks_to_map) is not 0:
                     self.mapped_chunks.append(self.chunks_to_map.pop(0))
                     # print("Setting new goal position, because other drone is close to current goal position")
                 drone.add_data_to_local_env(self.local_environment)
@@ -392,23 +374,24 @@ class Drone:
 
     def check_env_for_drones(self):
         """
-
-        :return:
+        A function to check the environment for any nearby drones to communicate with. This is done by scanning the
+        environment and ditermint the distance to all the drones, if it is within the range communications can be
+        established.
+        :return: The list of drone instances that are close enough
         """
         local_drones = []
         for drone in self.env.drones:
             if drone.id != self.id:
-                if self.find_distance_to_point(self.current_position, drone.current_position) <= 1000:
+                if self.find_distance_to_point(self.current_position, drone.current_position) <= 50:
                     local_drones.append(drone)
                     # print("drone " + str(self.id) + " is connecting with drone " + str(drone.id))
         return local_drones
 
-
     def add_data_to_local_env(self, data):
         """
-
-        :param data:
-        :return:
+        Adds data local environment data from nearby drones to this drones local enviroment
+        :param data: A list of points in the other drones local environment
+        :return: None
         """
         if self.local_environment:
             self_local_np = np.array(self.local_environment)
@@ -420,6 +403,11 @@ class Drone:
             self.local_environment = data
 
     def set_chunks(self, chunks):
+        """
+        Used by the ground station to set the chunks that need mapping for the drone.
+        :param chunks: The list of chunks
+        :return: None
+        """
         if len(self.chunks_to_map) == 0:
             self.chunks_to_map.extend(chunks)
             self.set_goal_position()

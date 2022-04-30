@@ -158,13 +158,13 @@ class GroundStation:
 
     def check_for_drones(self):
         """
-        This function checks the environment for any drones within a certian range to communicate with. If there are
+        This function checks the environment for any drones within a certain range to communicate with. If there are
         drones it adds their local environment to the global environment, it will also give them more chunks to
         explore if they are out, and it sends the data from the drones to the environment to show them to the user.
         :return: None
         """
         for drone in self.environment.drones:
-            if self.find_distance_to_point((100, 100), drone.current_position) <= 1000:
+            if self.find_distance_to_point((100, 100), drone.current_position) <= 50:
                 # print("Communicating with drone " + str(drone.id))
                 if len(drone.chunks_to_map) == 0:
                     self.random_exploration([drone])
