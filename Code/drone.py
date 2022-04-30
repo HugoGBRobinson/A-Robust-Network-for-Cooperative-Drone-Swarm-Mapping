@@ -21,6 +21,7 @@ class Drone:
         :param environment: The environment instance
         :param drone_deflect_clockwise: A boolean to determine if the drone deflects clockwise or anti-clockwise
         """
+        self.goal_position = None
         self.id = id
         self.local_environment = []
         self.immediate_environment = []
@@ -106,7 +107,7 @@ class Drone:
                 self.mapped_chunks.append(self.chunks_to_map[0])
                 self.chunks_to_map.remove(self.chunks_to_map[0])
             self.set_goal_position()
-            # print("Setting goal position because within 20 pixles of goal")
+            # print("Setting goal position because within 20 pixels of goal")
             self.path = []
             found_path = self.generate_path()
             while not found_path:
@@ -204,7 +205,7 @@ class Drone:
 
             self.intermediate_node = next_node
         for i in range(len(possible_nodes)):
-            if next_node == None:
+            if next_node is not None:
                 next_node = possible_nodes[i]
             else:
                 if possible_nodes[i][1] > next_node[1]:
@@ -236,14 +237,14 @@ class Drone:
 
     def deflect_node(self, next_node):
         """
-        A function to delfect the intermediate node by + or - 10 degrees if there is a wall in the way
+        A function to deflect the intermediate node by + or - 10 degrees if there is a wall in the way
         :param next_node: The intermediate node in (x , y) format
         :return: The new intermediate node in (x , y) format
         """
         # theta = arctan(y2-y1 / x2-x1)
 
         deflection = 10
-        if self.deflection_clockwise == False:
+        if not self.deflection_clockwise:
             deflection = -10
         length = 20
         angel = math.atan2(next_node[1] - self.current_position[1],
@@ -291,7 +292,7 @@ class Drone:
 
     def move_too_close_too_object(self, point):
         """
-        Returns true if the defined point is either inside a wall or within 10 pixels of it.
+        Returns true if the defined point is either inside a wall or within 10 pixels of it
         :param point: The point queried
         :return: Boolean
         """
@@ -326,12 +327,12 @@ class Drone:
                   ((p[0] - 1), (p[1] - 1)), ((p[0]), (p[1] - 1)), ((p[0] + 1), (p[1] - 1))]
         return points
 
-    def find_distance_to_point(self, next_position, goal_position):
+    @staticmethod
+    def find_distance_to_point(next_position, goal_position):
         """
         Finds the euclidian distance between a next position and the goal node
-
-        :param goal_position:
         :param next_position: One of the next positions from the list
+        :param goal_position: The second position
         :return: The euclidian distance
         """
         x1 = next_position[0]
@@ -360,7 +361,7 @@ class Drone:
     def check_env_for_drones(self):
         """
         A function to check the environment for any nearby drones to communicate with. This is done by scanning the
-        environment and ditermint the distance to all the drones, if it is within the range communications can be
+        environment and determine the distance to all the drones, if it is within the range communications can be
         established.
         :return: The list of drone instances that are close enough
         """
@@ -373,7 +374,7 @@ class Drone:
 
     def add_data_to_local_env(self, data):
         """
-        Adds data local environment data from nearby drones to this drones local enviroment
+        Adds data local environment data from nearby drones to this drones local environment
         :param data: A list of points in the other drones local environment
         :return: None
         """
@@ -388,7 +389,7 @@ class Drone:
 
     def set_chunks(self, chunks):
         """
-        Used by the ground station to set the chunks that need mapping for the drone.
+        Used by the ground station to set the chunks that need mapping for the drone
         :param chunks: The list of chunks
         :return: None
         """

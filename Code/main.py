@@ -29,8 +29,8 @@ def main():
         drones.append(
             drone.Drone(i, (100, 100), lidar.Sensor(200, pygame.surfarray.array2d(environment.originalMap)),
                         environment.drones, ground_station, environment,
-                        drone_deflects_clockwise))  # environemnt added for testing
-        if drone_deflects_clockwise == True:
+                        drone_deflects_clockwise))  # environment added for testing
+        if drone_deflects_clockwise:
             drone_deflects_clockwise = False
         else:
             drone_deflects_clockwise = True
@@ -51,7 +51,7 @@ def main():
             pygame.display.update()
 
         if count % 100 == 0:
-            percentage = pecentage_map_explored(environment.originalMap, environment.infomap)
+            percentage = percentage_map_explored(environment.originalMap, environment.infomap)
             print(percentage)
             if percentage > 85:
                 print("-----------------------------------------------------------------------------------------------")
@@ -60,7 +60,7 @@ def main():
                 print("-----------------------------------------------------------------------------------------------")
                 break
         if count == 10000:
-            percentage = pecentage_map_explored(environment.originalMap, environment.infomap)
+            percentage = percentage_map_explored(environment.originalMap, environment.infomap)
             print("-----------------------------------------------------------------------------------------------")
             print("The " + str(num_of_drones) + " drone(s) explored + " + str(
                 int(percentage)) + "% of the environment in " + str(count)
@@ -72,9 +72,9 @@ def main():
         count += 1
 
 
-def pecentage_map_explored(whole_map, current_map):
+def percentage_map_explored(whole_map, current_map):
     """
-    This function works out the percentage of the map explored by the drones for the ground stations global map.
+    This function works out the percentage of the map explored by the drones for the ground stations global map
     :param whole_map: The pygame surface of the underlying map
     :param current_map: The global environment of the ground station
     :return: A float of the percentage explored
@@ -91,7 +91,7 @@ def pecentage_map_explored(whole_map, current_map):
 def remove_drone(drones):
     """
     A function to remove drones from the environment during the simulation, based on a percentage chance per iteration,
-    this percentage chance is very low but can be changed.
+    this percentage chance is very low but can be changed
     :param drones: A list of the drones
     :return: None
     """

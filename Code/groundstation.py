@@ -103,7 +103,6 @@ class GroundStation:
                                   self.chunks[0][int(self.environment.maph / 100) - 1], self.chunks[0][0]])
 
         inner_chunks = self.chunks
-        a = 10
         inner_chunks.pop()
         inner_chunks.pop(0)
         for chunk in inner_chunks:
@@ -147,7 +146,8 @@ class GroundStation:
         if len(non_random_drones) > 0:
             self.out_in_exploration(non_random_drones)
 
-    def send_chunks_to_drone(self, chunks, drone):
+    @staticmethod
+    def send_chunks_to_drone(chunks, drone):
         """
         Sends the list of chunks to the drones
         :param chunks: A list of the chunks
@@ -187,7 +187,7 @@ class GroundStation:
     def remove_explored_chunks(self, chunks):
         """
         If the drones have explored chunks the ground station will remove them from the mapping chunks list, so they
-        are npt re-explored by drones unnecessarily.
+        are npt re-explored by drones unnecessarily
         :param chunks: The list of mapped chunks
         :return: None
         """
@@ -195,12 +195,12 @@ class GroundStation:
         self.mapping_chunks = sorted(set(self.mapping_chunks))
         self.mapping_chunks = [chunk for chunk in self.mapping_chunks if chunk not in chunks]
 
-    def find_distance_to_point(self, next_position, goal_position):
+    @staticmethod
+    def find_distance_to_point(next_position, goal_position):
         """
         Finds the euclidian distance between a next position and the goal node
-
-        :param goal_position:
         :param next_position: One of the next positions from the list
+        :param goal_position: The second position
         :return: The euclidian distance
         """
         x1 = next_position[0]
