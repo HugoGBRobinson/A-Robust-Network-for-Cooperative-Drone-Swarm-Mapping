@@ -399,7 +399,7 @@ class Drone:
         local_drones = []
         for drone in self.env.drones:
             if drone.id != self.id:
-                if self.find_distance_to_point(self.current_position, drone.current_position) <= 100:
+                if self.find_distance_to_point(self.current_position, drone.current_position) <= 1000:
                     local_drones.append(drone)
                     # print("drone " + str(self.id) + " is connecting with drone " + str(drone.id))
         return local_drones

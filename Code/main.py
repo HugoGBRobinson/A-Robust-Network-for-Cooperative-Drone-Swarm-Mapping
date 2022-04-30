@@ -4,26 +4,31 @@ import drone
 import env
 import groundstation
 import lidar
+import random
 
 
 def main():
+    """
+    The main function sets up the
+    :return:
+    """
     count = 0
     environment = env.BuildEnvironment((600, 1200))
     environment.originalMap = environment.map.copy()
     environment.map.fill((0, 0, 0))
     environment.infomap = environment.map.copy()
 
-    num_of_drones = 10
+    num_of_drones = 5
 
     ground_station = groundstation.GroundStation(environment, num_of_drones)
-
 
     drones = []
     drone_deflects_clockwise = True
     for i in range(num_of_drones):
         drones.append(
             drone.Drone(i, (100, 100), lidar.Sensor(200, pygame.surfarray.array2d(environment.originalMap)),
-                        environment.drones, ground_station, environment, drone_deflects_clockwise)) #environemnt added for testing
+                        environment.drones, ground_station, environment,
+                        drone_deflects_clockwise))  # environemnt added for testing
         if drone_deflects_clockwise == True:
             drone_deflects_clockwise = False
         else:
@@ -56,9 +61,13 @@ def main():
         if count == 10000:
             percentage = pecentage_map_explored(environment.originalMap, environment.infomap)
             print("-----------------------------------------------------------------------------------------------")
-            print("The " + str(num_of_drones) + " drone(s) explored + " + str(int(percentage)) + "% of the environment in " + str(count)
+            print("The " + str(num_of_drones) + " drone(s) explored + " + str(
+                int(percentage)) + "% of the environment in " + str(count)
                   + " iterations")
             print("-----------------------------------------------------------------------------------------------")
+
+        # remove_drone(drones)
+        print(count)
         count += 1
 
 
@@ -74,6 +83,12 @@ def pecentage_map_explored(whole_map, current_map):
 
 def run_drones(drone):
     drone.sense_environment()
+
+
+def remove_drone(drones):
+    num = random.randint(0, 100000)
+    if num == 1:
+        drones.remove(random.randint(0, len(drones)))
 
 
 if __name__ == '__main__':
