@@ -13,13 +13,13 @@ def main():
     environment.map.fill((0, 0, 0))
     environment.infomap = environment.map.copy()
 
-    num_of_drones = 5
+    num_of_drones = 10
 
     ground_station = groundstation.GroundStation(environment, num_of_drones)
 
 
     drones = []
-    drone_deflects_clockwise = False
+    drone_deflects_clockwise = True
     for i in range(num_of_drones):
         drones.append(
             drone.Drone(i, (100, 100), lidar.Sensor(200, pygame.surfarray.array2d(environment.originalMap)),
@@ -32,7 +32,7 @@ def main():
     running = True
 
     environment.set_drones_in_env(drones)
-    ground_station.mixed_exploration(drones=None)
+    ground_station.mixed_exploration(drones=drones)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -47,12 +47,18 @@ def main():
         if count % 100 == 0:
             percentage = pecentage_map_explored(environment.originalMap, environment.infomap)
             print(percentage)
-            if percentage > 90:
+            if percentage > 85:
                 print("-----------------------------------------------------------------------------------------------")
-                print("The " + str(num_of_drones) + " drone(s) explored 90% of the environment in " + str(count)
+                print("The " + str(num_of_drones) + " drone(s) explored 85% of the environment in " + str(count)
                       + " iterations")
                 print("-----------------------------------------------------------------------------------------------")
                 break
+        if count == 10000:
+            percentage = pecentage_map_explored(environment.originalMap, environment.infomap)
+            print("-----------------------------------------------------------------------------------------------")
+            print("The " + str(num_of_drones) + " drone(s) explored + " + str(int(percentage)) + "% of the environment in " + str(count)
+                  + " iterations")
+            print("-----------------------------------------------------------------------------------------------")
         count += 1
 
 

@@ -155,10 +155,6 @@ class GroundStation:
                 self.environment.show_lidar_data(drone.local_environment, drone.current_position,
                                                  drone.previous_position, drone.checked_nodes,
                                                  drone.intermediate_node)
-            elif self.find_distance_to_point((100, 100), drone.current_position) == 50:
-                self.environment.show_lidar_data(drone.local_environment, None,
-                                                 drone.previous_position, drone.checked_nodes,
-                                                 drone.intermediate_node)
             self.environment.show_lidar_data(None, drone.current_position,
                                          drone.previous_position, drone.checked_nodes,
                                          drone.intermediate_node)

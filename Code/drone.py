@@ -382,9 +382,9 @@ class Drone:
         local_drones = self.check_env_for_drones()
         for drone in local_drones:
             if self.local_environment:
-                if self.find_distance_to_point(self.goal_position, drone.current_position) <= 30:
+                if self.find_distance_to_point(self.goal_position, drone.current_position) <= 50 and len(self.chunks_to_map) is not 0:
                     self.mapped_chunks.append(self.chunks_to_map.pop(0))
-                    print("Setting new goal position, because other drone is close to current goal position")
+                    # print("Setting new goal position, because other drone is close to current goal position")
                 drone.add_data_to_local_env(self.local_environment)
                 self.mapped_chunks.append(drone.mapped_chunks)
                 self.chunks_to_map = [chunk for chunk in self.chunks_to_map if chunk not in drone.mapped_chunks]
@@ -397,7 +397,7 @@ class Drone:
         :return:
         """
         local_drones = []
-        for drone in self.environment_drones:
+        for drone in self.env.drones:
             if drone.id != self.id:
                 if self.find_distance_to_point(self.current_position, drone.current_position) <= 100:
                     local_drones.append(drone)
