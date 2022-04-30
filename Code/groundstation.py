@@ -165,7 +165,6 @@ class GroundStation:
         """
         for drone in self.environment.drones:
             if self.find_distance_to_point((100, 100), drone.current_position) <= 50:
-                # print("Communicating with drone " + str(drone.id))
                 if len(drone.chunks_to_map) == 0:
                     self.random_exploration([drone])
 

@@ -55,7 +55,6 @@ class Drone:
         rand = random.randint(0, 10000)
         if rand < 5:
             self.goal_position = (100, 100)
-            print("Returning")
 
     @staticmethod
     def a_d_2pos(distance, angle, drone_position):
@@ -79,10 +78,6 @@ class Drone:
         """
         if len(self.immediate_environment) > 600:
             self.immediate_environment = self.immediate_environment[-600:]
-        # if data is not False:
-        #     for element in data:
-        #         self.local_environment.append(self.a_d_2pos(element[0], element[1], element[2]))
-
         if data is not False:
             for element in data:
                 point = self.a_d_2pos(element[0], element[1], element[2])
@@ -158,7 +153,6 @@ class Drone:
                     buffered_possible_moves.append(move)
 
             for next in buffered_possible_moves:
-                # new_cost = cost_so_far[current] + self.find_distance_to_point(current, next)
                 new_cost = self.find_distance_to_point(current, next)
                 self.checked_nodes.append(next)
                 if len(self.checked_nodes) > 1000:
@@ -169,9 +163,6 @@ class Drone:
                     # print("Setting goal position because over 1000 searched nodes")
                     return False
                 if next not in came_from:
-                    # self.env.infomap.set_at(next, (255, 69, 0))
-                    # self.env.map.blit(self.env.infomap, (0, 0))
-                    # pygame.display.update()
                     cost_so_far[next] = new_cost
                     priority = self.find_distance_to_point(self.intermediate_node, next)
                     frontier.put((priority, next))
@@ -210,9 +201,6 @@ class Drone:
                 count += 10
                 if count == 190:
                     return False
-                # self.env.infomap.set_at(next_node, (255, 69, 0))
-                # self.env.map.blit(self.env.infomap, (0, 0))
-                # pygame.display.update()
 
             self.intermediate_node = next_node
         for i in range(len(possible_nodes)):
@@ -365,12 +353,9 @@ class Drone:
                 if self.find_distance_to_point(self.goal_position, drone.current_position) <= 50 and len(
                         self.chunks_to_map) is not 0:
                     self.mapped_chunks.append(self.chunks_to_map.pop(0))
-                    # print("Setting new goal position, because other drone is close to current goal position")
                 drone.add_data_to_local_env(self.local_environment)
                 self.mapped_chunks.append(drone.mapped_chunks)
                 self.chunks_to_map = [chunk for chunk in self.chunks_to_map if chunk not in drone.mapped_chunks]
-
-        # If drone communicating to is within 30 pixels of current goal position mark goal position as scanned
 
     def check_env_for_drones(self):
         """
@@ -384,7 +369,6 @@ class Drone:
             if drone.id != self.id:
                 if self.find_distance_to_point(self.current_position, drone.current_position) <= 50:
                     local_drones.append(drone)
-                    # print("drone " + str(self.id) + " is connecting with drone " + str(drone.id))
         return local_drones
 
     def add_data_to_local_env(self, data):

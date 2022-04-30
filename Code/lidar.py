@@ -46,9 +46,6 @@ class Sensor:
                 # If within the window
                 if 0 < x < self.W and 0 < y < self.H:
                     integer_colour = int(self.map[x][y])
-                    # colour = (integer_colour & 255, (integer_colour >> 8) & 255, (integer_colour >> 16) & 255)
-                    # colour = self.map.get_at((x, y))
-                    #if (colour[0], colour[1], colour[2]) == (0, 0, 0):
                     if integer_colour == 0:
                         distance = self.distance((x, y))
                         output = [distance, angle, self.position]
