@@ -9,6 +9,7 @@ class GroundStation:
         """
         The constructor for the ground_station
         :param environment: The current environment
+        :param number_of_drones: An integer of the number of drones
         """
         self.environment = environment
         self.global_environment = []
@@ -19,22 +20,11 @@ class GroundStation:
         self.mapped_chunks = []
         self.chunk_environment()
 
-
-    def combine_data(self, data, position, previous_position, checked_nodes, intermediate_node):
+    def chunk_environment(self):
         """
-        Each drone calls this function to combine their local data to the global data, subject to change
-        :param data: Local data from drone
-        :param position: Current position of drone
+        Splits the environment into 100 x 100 pixel chunks
         :return: None
         """
-        self.global_environment.extend(data)
-        if len(self.drone_positions) > 0:
-            self.drone_positions.pop()
-        self.drone_positions.append(position)
-
-        self.environment.show_lidar_data(data, position, previous_position, checked_nodes, intermediate_node)
-
-    def chunk_environment(self):
         x_max = self.environment.mapw
         y_max = self.environment.maph
 
@@ -45,6 +35,11 @@ class GroundStation:
             self.chunks.append(column)
 
     def vertical_linear_exploration(self, drones):
+        """
+        Disseminates the chunks to the drones to make them explore vertically in lines
+        :param drones: A list of all the drones
+        :return: None
+        """
         if drones is None:
             drones = self.environment.drones
         a = int(len(self.chunks) / self.number_of_drones)
@@ -55,6 +50,11 @@ class GroundStation:
                 self.mapping_chunks.append(chunk)
 
     def horizontal_linear_exploration(self, drones):
+        """
+        Disseminates the chunks to the drones to make them explore horizontally in lines
+        :param drones: A list of all the drones
+        :return: None
+        """
         if drones is None:
             drones = self.environment.drones
         self.chunks = []
@@ -74,8 +74,12 @@ class GroundStation:
                 self.send_chunks_to_drone(chunk, drones[i])
                 self.mapping_chunks.append(chunk)
 
-
     def out_in_exploration(self, drones):
+        """
+        Disseminates the chunks to the drones to make them explore around the outside, then inside
+        :param drones: A list of all the drones
+        :return: None
+        """
         if drones is None:
             drones = self.environment.drones
         clockwise = True
@@ -83,13 +87,13 @@ class GroundStation:
             if len(drones) > 1:
                 if clockwise:
                     drone.set_chunks([self.chunks[0][0], self.chunks[0][int(self.environment.maph / 100) - 1],
-                                          self.chunks[int(self.environment.mapw / 100) - 1][
-                                              int(self.environment.maph / 100) - 1]])
+                                      self.chunks[int(self.environment.mapw / 100) - 1][
+                                          int(self.environment.maph / 100) - 1]])
                     clockwise = False
                 else:
                     drone.set_chunks([self.chunks[0][0], self.chunks[int(self.environment.mapw / 100) - 1][0],
-                                          self.chunks[int(self.environment.mapw / 100) - 1][
-                                              int(self.environment.maph / 100) - 1]])
+                                      self.chunks[int(self.environment.mapw / 100) - 1][
+                                          int(self.environment.maph / 100) - 1]])
                     clockwise = True
             else:
                 drone = drones[0]
@@ -113,12 +117,22 @@ class GroundStation:
         return False
 
     def random_exploration(self, drones):
+        """
+        Disseminates the chunks to the drones to make them explore randomly
+        :param drones: A list of all the drones
+        :return: None
+        """
         for i in range(len(drones)):
             for ii in range(30):
                 self.send_chunks_to_drone([self.chunks[random.randint(0, len(self.chunks) - 1)]
                                            [random.randint(0, len(self.chunks[0]) - 1)]], drones[i])
 
     def mixed_exploration(self, drones):
+        """
+        Disseminates the chunks to the drones to make them explore around the outside, then inside and randomly
+        :param drones: A list of all the drones
+        :return: None
+        """
         if drones is None:
             drones = self.environment.drones
         non_random_drones = []
@@ -134,9 +148,21 @@ class GroundStation:
             self.out_in_exploration(non_random_drones)
 
     def send_chunks_to_drone(self, chunks, drone):
+        """
+        Sends the list of chunks to the drones
+        :param chunks: A list of the chunks
+        :param drone: The drone instance
+        :return: None
+        """
         drone.set_chunks(chunks)
 
     def check_for_drones(self):
+        """
+        This function checks the environment for any drones within a certian range to communicate with. If there are
+        drones it adds their local environment to the global environment, it will also give them more chunks to
+        explore if they are out, and it sends the data from the drones to the environment to show them to the user.
+        :return: None
+        """
         for drone in self.environment.drones:
             if self.find_distance_to_point((100, 100), drone.current_position) <= 1000:
                 # print("Communicating with drone " + str(drone.id))
@@ -156,17 +182,19 @@ class GroundStation:
                                                  drone.previous_position, drone.checked_nodes,
                                                  drone.intermediate_node)
             self.environment.show_lidar_data(None, drone.current_position,
-                                         drone.previous_position, drone.checked_nodes,
-                                         drone.intermediate_node)
-
-
+                                             drone.previous_position, drone.checked_nodes,
+                                             drone.intermediate_node)
 
     def remove_explored_chunks(self, chunks):
+        """
+        If the drones have explored chunks the ground station will remove them from the mapping chunks list, so they
+        are npt re-explored by drones unnecessarily.
+        :param chunks: The list of mapped chunks
+        :return: None
+        """
         self.mapped_chunks.append(chunks)
         self.mapping_chunks = sorted(set(self.mapping_chunks))
         self.mapping_chunks = [chunk for chunk in self.mapping_chunks if chunk not in chunks]
-
-
 
     def find_distance_to_point(self, next_position, goal_position):
         """

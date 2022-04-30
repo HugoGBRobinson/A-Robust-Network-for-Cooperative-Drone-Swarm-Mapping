@@ -49,7 +49,6 @@ class Drone:
 
         self.communicate_to_drone()
         self.move()
-        # self.communicate_to_ground_station()
         self.checked_nodes = []
         rand = random.randint(0,10000)
         if rand < 5:
@@ -404,13 +403,6 @@ class Drone:
                     # print("drone " + str(self.id) + " is connecting with drone " + str(drone.id))
         return local_drones
 
-    def communicate_to_ground_station(self):
-        """
-        Communications to the ground station, all drones can currently do this
-        :return: None
-        """
-        self.ground_station.combine_data(self.local_environment, self.current_position, self.previous_position,
-                                         self.checked_nodes, self.intermediate_node)
 
     def add_data_to_local_env(self, data):
         """
