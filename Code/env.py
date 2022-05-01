@@ -13,7 +13,7 @@ class BuildEnvironment:
         self.pointCloud = []
         self.externalMap = pygame.image.load('Floor Plan.png')
         self.maph, self.mapw = map_dimensions
-        self.MapWindowName = 'Point Cloud Test'
+        self.MapWindowName = 'Dissertation'
         pygame.display.set_caption(self.MapWindowName)
         self.map = pygame.display.set_mode((self.mapw, self.maph))
         self.map.blit(self.externalMap, (0, 0))

@@ -19,7 +19,7 @@ def main():
     environment.map.fill((0, 0, 0))
     environment.infomap = environment.map.copy()
 
-    num_of_drones = 10
+    num_of_drones = 5
 
     ground_station = groundstation.GroundStation(environment, num_of_drones)
 
@@ -28,7 +28,7 @@ def main():
     for i in range(num_of_drones):
         drones.append(
             drone.Drone(i, (100, 100), lidar.Sensor(200, pygame.surfarray.array2d(environment.originalMap)),
-                        environment.drones, ground_station, drone_deflects_clockwise))
+                        environment.drones, ground_station, environment, drone_deflects_clockwise))
         if drone_deflects_clockwise:
             drone_deflects_clockwise = False
         else:
@@ -39,7 +39,7 @@ def main():
     # Adds all the drones to the environment
     environment.set_drones_in_env(drones)
     # Sets the style of exploration
-    ground_station.out_in_exploration(drones=drones)
+    ground_station.mixed_exploration(drones=drones)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
