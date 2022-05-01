@@ -19,6 +19,7 @@ class GroundStation:
         self.mapping_chunks = []
         self.mapped_chunks = []
         self.chunk_environment()
+        self.communication_range = 250
 
     def chunk_environment(self):
         """
@@ -164,7 +165,7 @@ class GroundStation:
         :return: None
         """
         for drone in self.environment.drones:
-            if self.find_distance_to_point((100, 100), drone.current_position) <= 250:
+            if self.find_distance_to_point((100, 100), drone.current_position) <= self.communication_range:
                 if len(drone.chunks_to_map) == 0:
                     self.random_exploration([drone])
 

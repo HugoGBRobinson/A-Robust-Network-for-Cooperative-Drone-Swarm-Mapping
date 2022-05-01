@@ -104,7 +104,8 @@ def remove_drone(drones):
     :param drones: A list of the drones
     :return: None
     """
-    num = random.randint(0, 500)
+    attrition_rate = 500
+    num = random.randint(0, attrition_rate)
     if num == 1:
         print("Removing drone")
         del(drones[0])

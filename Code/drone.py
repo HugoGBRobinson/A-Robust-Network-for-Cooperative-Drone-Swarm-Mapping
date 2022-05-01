@@ -37,6 +37,7 @@ class Drone:
         self.env = environment
         self.chunks_to_map = []
         self.mapped_chunks = []
+        self.communication_range = 250
         self.deflection_clockwise = drone_deflect_clockwise
         self.set_goal_position()
 
@@ -352,7 +353,7 @@ class Drone:
         for drone in local_drones:
             if self.local_environment:
                 if self.find_distance_to_point(self.goal_position, drone.current_position) <= 50 and len(
-                        self.chunks_to_map) is not 0:
+                        self.chunks_to_map) != 0:
                     self.mapped_chunks.append(self.chunks_to_map.pop(0))
                 drone.add_data_to_local_env(self.local_environment)
                 self.mapped_chunks.append(drone.mapped_chunks)
@@ -368,7 +369,8 @@ class Drone:
         local_drones = []
         for drone in self.env.drones:
             if drone.id != self.id:
-                if self.find_distance_to_point(self.current_position, drone.current_position) <= 250:
+                if self.find_distance_to_point(self.current_position, drone.current_position) \
+                        <= self.communication_range:
                     local_drones.append(drone)
         return local_drones
 
