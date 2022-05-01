@@ -50,7 +50,7 @@ class Drone:
         self.sensor.current_position = self.current_position
         self.data_storage(self.sensor.sense_obstacles(self.current_position))
 
-        self.communicate_to_drone()
+        # self.communicate_to_drone()
         self.move()
         self.checked_nodes = []
         rand = random.randint(0, 10000)
@@ -368,7 +368,7 @@ class Drone:
         local_drones = []
         for drone in self.env.drones:
             if drone.id != self.id:
-                if self.find_distance_to_point(self.current_position, drone.current_position) <= 50:
+                if self.find_distance_to_point(self.current_position, drone.current_position) <= 250:
                     local_drones.append(drone)
         return local_drones
 

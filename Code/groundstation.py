@@ -164,7 +164,7 @@ class GroundStation:
         :return: None
         """
         for drone in self.environment.drones:
-            if self.find_distance_to_point((100, 100), drone.current_position) <= 50:
+            if self.find_distance_to_point((100, 100), drone.current_position) <= 250:
                 if len(drone.chunks_to_map) == 0:
                     self.random_exploration([drone])
 
@@ -178,11 +178,9 @@ class GroundStation:
                     self.global_environment = drone.local_environment
 
                 self.environment.show_lidar_data(drone.local_environment, drone.current_position,
-                                                 drone.previous_position, drone.checked_nodes,
-                                                 drone.intermediate_node)
+                                                 drone.previous_position)
             self.environment.show_lidar_data(None, drone.current_position,
-                                             drone.previous_position, drone.checked_nodes,
-                                             drone.intermediate_node)
+                                             drone.previous_position)
 
     def remove_explored_chunks(self, chunks):
         """

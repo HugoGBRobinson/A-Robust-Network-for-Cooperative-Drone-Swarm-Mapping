@@ -19,7 +19,7 @@ def main():
     environment.map.fill((0, 0, 0))
     environment.infomap = environment.map.copy()
 
-    num_of_drones = 5
+    num_of_drones = 10
 
     ground_station = groundstation.GroundStation(environment, num_of_drones)
 
@@ -37,8 +37,10 @@ def main():
 
     running = True
 
+    # Adds all the drones to the environment
     environment.set_drones_in_env(drones)
-    ground_station.mixed_exploration(drones=drones)
+    # Sets the style of exploration
+    ground_station.out_in_exploration(drones=drones)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -67,8 +69,15 @@ def main():
                   + " iterations")
             print("-----------------------------------------------------------------------------------------------")
 
-        # remove_drone(drones)
-        print(count)
+        remove_drone(drones)
+        if len(drones) == 0:
+            percentage = percentage_map_explored(environment.originalMap, environment.infomap)
+            print("-----------------------------------------------------------------------------------------------")
+            print("The " + str(num_of_drones) + " drone(s) explored " + str(
+                int(percentage)) + "% of the environment in " + str(count)
+                  + " iterations before the swarm failed")
+            print("-----------------------------------------------------------------------------------------------")
+            break
         count += 1
 
 
@@ -80,10 +89,10 @@ def percentage_map_explored(whole_map, current_map):
     :return: A float of the percentage explored
     """
     whole_map = pygame.surfarray.pixels2d(whole_map)
-    # 16711680
     whole_map_count = list(whole_map.flatten()).count(0)
     current_map = pygame.surfarray.pixels2d(current_map)
     current_map = list(current_map.flatten())
+    # 16711680 is the colour id for red
     current_map_count = len([colour for colour in current_map if colour == 16711680])
     return (current_map_count / whole_map_count) * 100
 
@@ -95,9 +104,10 @@ def remove_drone(drones):
     :param drones: A list of the drones
     :return: None
     """
-    num = random.randint(0, 100000)
+    num = random.randint(0, 500)
     if num == 1:
-        drones.remove(random.randint(0, len(drones)))
+        print("Removing drone")
+        del(drones[0])
 
 
 if __name__ == '__main__':
