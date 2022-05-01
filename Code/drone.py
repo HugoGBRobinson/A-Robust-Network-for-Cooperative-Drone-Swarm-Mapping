@@ -10,7 +10,7 @@ class Drone:
     This class will encode a singular drone,its attributes and its functionality
     """
 
-    def __init__(self, id, position, sensor, environment_drones, ground_station, environment, drone_deflect_clockwise):
+    def __init__(self, id, position, sensor, environment_drones, ground_station, drone_deflect_clockwise):
         """
         The constructor for the drone class
         :param id: The id number of the drone
@@ -34,7 +34,6 @@ class Drone:
         self.path = []
         self.checked_nodes = []
         self.ground_station = ground_station
-        self.env = environment
         self.chunks_to_map = []
         self.mapped_chunks = []
         self.communication_range = 250

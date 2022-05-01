@@ -28,8 +28,7 @@ def main():
     for i in range(num_of_drones):
         drones.append(
             drone.Drone(i, (100, 100), lidar.Sensor(200, pygame.surfarray.array2d(environment.originalMap)),
-                        environment.drones, ground_station, environment,
-                        drone_deflects_clockwise))  # environment added for testing
+                        environment.drones, ground_station, drone_deflects_clockwise))
         if drone_deflects_clockwise:
             drone_deflects_clockwise = False
         else:
